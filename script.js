@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const reactionDistance = 80; // Distance in pixels to trigger movement
-    const moveDistance = 60; // How far to move slightly
+    const reactionDistance = 120; // Distance in pixels to trigger movement
+    const moveDistance = 150; // How far to move aggressively
 
     function handleProximity(x, y) {
         if (noBtn.style.display === 'none') return;
@@ -120,16 +120,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const dirX = deltaX / length;
         const dirY = deltaY / length;
 
-        // Move away slighty
+        // Move away aggressively
         let newX = btnX + dirX * moveDistance - (noBtn.offsetWidth / 2);
         let newY = btnY + dirY * moveDistance - (noBtn.offsetHeight / 2);
 
-        // Boundary checks (clamp to screen)
-        const margin = 20;
+        // Enhanced boundary checks to keep button well within screen
+        const margin = 50; // Increased margin to keep button more visible
         const maxX = window.innerWidth - noBtn.offsetWidth - margin;
         const maxY = window.innerHeight - noBtn.offsetHeight - margin;
 
-        // Clamp values to ensure it stays on screen
+        // If the new position would go off screen, find a better position
+        if (newX < margin || newX > maxX || newY < margin || newY > maxY) {
+            // Find alternative positions - try different angles
+            const angles = [45, -45, 135, -135, 90, -90, 0, 180];
+            for (let angle of angles) {
+                const rad = (angle * Math.PI) / 180;
+                const testX = btnX + Math.cos(rad) * moveDistance - (noBtn.offsetWidth / 2);
+                const testY = btnY + Math.sin(rad) * moveDistance - (noBtn.offsetHeight / 2);
+                
+                if (testX >= margin && testX <= maxX && testY >= margin && testY <= maxY) {
+                    newX = testX;
+                    newY = testY;
+                    break;
+                }
+            }
+        }
+
+        // Final clamp as fallback to ensure it stays on screen
         newX = Math.max(margin, Math.min(newX, maxX));
         newY = Math.max(margin, Math.min(newY, maxY));
 
