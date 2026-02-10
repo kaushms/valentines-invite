@@ -163,64 +163,118 @@ document.addEventListener('DOMContentLoaded', () => {
             safeMaxY = Math.min(maxY, viewportHeight * 0.85);
         }
 
-        // Add randomness to movement - mix of directional and random
-        let newX, newY;
+        // Get Yes button position to avoid overlap
+        const yesBtnRect = yesBtn.getBoundingClientRect();
+        const yesBtnX = yesBtnRect.left;
+        const yesBtnY = yesBtnRect.top;
+        const yesBtnWidth = yesBtnRect.width;
+        const yesBtnHeight = yesBtnRect.height;
         
-        // 60% chance for semi-random movement, 40% for directional
-        if (Math.random() > 0.4) {
-            // Random positioning with some bias away from cursor
-            const randomZones = [
-                { x: viewportWidth * 0.15, y: safeMinY + (safeMaxY - safeMinY) * 0.2 },
-                { x: viewportWidth * 0.85 - btnWidth, y: safeMinY + (safeMaxY - safeMinY) * 0.2 },
-                { x: viewportWidth * 0.15, y: safeMinY + (safeMaxY - safeMinY) * 0.8 },
-                { x: viewportWidth * 0.85 - btnWidth, y: safeMinY + (safeMaxY - safeMinY) * 0.8 },
-                { x: viewportWidth * 0.5 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.15 },
-                { x: viewportWidth * 0.5 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.75 },
-                { x: viewportWidth * 0.3 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 },
-                { x: viewportWidth * 0.7 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 }
-            ];
-            
-            // Filter out zones too close to cursor
-            const validZones = randomZones.filter(zone => {
-                const zoneCenterX = zone.x + btnWidth / 2;
-                const zoneCenterY = zone.y + btnHeight / 2;
-                const distance = Math.hypot(cursorX - zoneCenterX, cursorY - zoneCenterY);
-                return distance > reactionDistance * 1.5; // Must be reasonably far from cursor
-            });
-            
-            if (validZones.length > 0) {
-                const randomZone = validZones[Math.floor(Math.random() * validZones.length)];
-                // Add some randomness within the zone
-                newX = randomZone.x + (Math.random() - 0.5) * 40;
-                newY = randomZone.y + (Math.random() - 0.5) * 30;
-            } else {
-                // Fallback to opposite corner
-                newX = cursorX < viewportWidth / 2 ? maxX - 50 : minX + 50;
-                newY = cursorY < viewportHeight / 2 ? safeMaxY - 30 : safeMinY + 30;
-            }
-        } else {
-            // Directional movement (less aggressive)
-            let deltaX = btnX - cursorX;
-            let deltaY = btnY - cursorY;
+        // Minimum distance between buttons to prevent overlap
+        const minButtonDistance = Math.max(yesBtnWidth, yesBtnHeight) + (isMobile ? 60 : 40);
 
-            // If too close, add some randomness
-            if (Math.hypot(deltaX, deltaY) < 50) {
-                deltaX += (Math.random() - 0.5) * 100;
-                deltaY += (Math.random() - 0.5) * 100;
-            }
-
-            // Normalize and apply gentler movement
-            const length = Math.hypot(deltaX, deltaY);
-            const dirX = deltaX / length;
-            const dirY = deltaY / length;
-
-            newX = btnX + dirX * moveDistance - (btnWidth / 2);
-            newY = btnY + dirY * moveDistance - (btnHeight / 2);
+        function checkOverlapWithYesBtn(x, y) {
+            const centerX = x + btnWidth / 2;
+            const centerY = y + btnHeight / 2;
+            const yesCenterX = yesBtnX + yesBtnWidth / 2;
+            const yesCenterY = yesBtnY + yesBtnHeight / 2;
+            const distance = Math.hypot(centerX - yesCenterX, centerY - yesCenterY);
+            return distance < minButtonDistance;
         }
 
-        // Ensure button stays within boundaries
-        newX = Math.max(minX, Math.min(newX, maxX));
-        newY = Math.max(safeMinY, Math.min(newY, safeMaxY));
+        // Add randomness to movement - mix of directional and random
+        let newX, newY;
+        let attempts = 0;
+        const maxAttempts = 20;
+        
+        do {
+            attempts++;
+            
+            // 60% chance for semi-random movement, 40% for directional
+            if (Math.random() > 0.4) {
+                // Random positioning with some bias away from cursor
+                const randomZones = [
+                    { x: viewportWidth * 0.15, y: safeMinY + (safeMaxY - safeMinY) * 0.2 },
+                    { x: viewportWidth * 0.85 - btnWidth, y: safeMinY + (safeMaxY - safeMinY) * 0.2 },
+                    { x: viewportWidth * 0.15, y: safeMinY + (safeMaxY - safeMinY) * 0.8 },
+                    { x: viewportWidth * 0.85 - btnWidth, y: safeMinY + (safeMaxY - safeMinY) * 0.8 },
+                    { x: viewportWidth * 0.5 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.15 },
+                    { x: viewportWidth * 0.5 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.75 },
+                    { x: viewportWidth * 0.3 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 },
+                    { x: viewportWidth * 0.7 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 }
+                ];
+                
+                // Filter out zones too close to cursor AND too close to Yes button
+                const validZones = randomZones.filter(zone => {
+                    const zoneCenterX = zone.x + btnWidth / 2;
+                    const zoneCenterY = zone.y + btnHeight / 2;
+                    const distanceFromCursor = Math.hypot(cursorX - zoneCenterX, cursorY - zoneCenterY);
+                    const distanceFromYesBtn = Math.hypot((yesBtnX + yesBtnWidth / 2) - zoneCenterX, (yesBtnY + yesBtnHeight / 2) - zoneCenterY);
+                    return distanceFromCursor > reactionDistance * 1.5 && distanceFromYesBtn > minButtonDistance;
+                });
+                
+                if (validZones.length > 0) {
+                    const randomZone = validZones[Math.floor(Math.random() * validZones.length)];
+                    // Add some randomness within the zone
+                    newX = randomZone.x + (Math.random() - 0.5) * 40;
+                    newY = randomZone.y + (Math.random() - 0.5) * 30;
+                } else {
+                    // Fallback to opposite corner, ensuring no overlap
+                    newX = cursorX < viewportWidth / 2 ? maxX - 50 : minX + 50;
+                    newY = cursorY < viewportHeight / 2 ? safeMaxY - 30 : safeMinY + 30;
+                }
+            } else {
+                // Directional movement (less aggressive)
+                let deltaX = btnX - cursorX;
+                let deltaY = btnY - cursorY;
+
+                // If too close, add some randomness
+                if (Math.hypot(deltaX, deltaY) < 50) {
+                    deltaX += (Math.random() - 0.5) * 100;
+                    deltaY += (Math.random() - 0.5) * 100;
+                }
+
+                // Normalize and apply gentler movement
+                const length = Math.hypot(deltaX, deltaY);
+                const dirX = deltaX / length;
+                const dirY = deltaY / length;
+
+                newX = btnX + dirX * moveDistance - (btnWidth / 2);
+                newY = btnY + dirY * moveDistance - (btnHeight / 2);
+            }
+            
+            // Ensure button stays within boundaries
+            newX = Math.max(minX, Math.min(newX, maxX));
+            newY = Math.max(safeMinY, Math.min(newY, safeMaxY));
+            
+        } while (checkOverlapWithYesBtn(newX, newY) && attempts < maxAttempts);
+        
+        // If we couldn't find a non-overlapping position after max attempts,
+        // place it in a safe corner far from the Yes button
+        if (attempts >= maxAttempts) {
+            const corners = [
+                { x: minX, y: safeMinY },
+                { x: maxX, y: safeMinY },
+                { x: minX, y: safeMaxY },
+                { x: maxX, y: safeMaxY }
+            ];
+            
+            // Find the corner furthest from the Yes button
+            let bestCorner = corners[0];
+            let maxDistance = 0;
+            
+            corners.forEach(corner => {
+                const distance = Math.hypot((yesBtnX + yesBtnWidth / 2) - (corner.x + btnWidth / 2), 
+                                         (yesBtnY + yesBtnHeight / 2) - (corner.y + btnHeight / 2));
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                    bestCorner = corner;
+                }
+            });
+            
+            newX = bestCorner.x;
+            newY = bestCorner.y;
+        }
 
         // Apply position
         noBtn.style.left = `${newX}px`;
