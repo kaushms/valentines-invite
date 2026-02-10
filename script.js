@@ -24,20 +24,44 @@ document.addEventListener('DOMContentLoaded', () => {
         img.src = src;
     });
 
+    // Mobile detection
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                    window.innerWidth <= 768 || 
+                    'ontouchstart' in window;
+
     // Proximity detection for "No" button
     document.addEventListener('mousemove', (e) => {
-        handleProximity(e.clientX, e.clientY);
+        if (!isMobile) { // Only on desktop
+            handleProximity(e.clientX, e.clientY);
+        }
+    });
+
+    // Enhanced touch handling for mobile
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            const touch = e.touches[0];
+            handleProximity(touch.clientX, touch.clientY);
+            // Prevent default to avoid iOS zoom/scroll issues
+            if (e.target === noBtn) {
+                e.preventDefault();
+            }
+        }
     });
 
     document.addEventListener('touchmove', (e) => {
         if (e.touches.length > 0) {
             const touch = e.touches[0];
             handleProximity(touch.clientX, touch.clientY);
+            // Prevent scrolling when interacting with button area
+            if (e.target === noBtn) {
+                e.preventDefault();
+            }
         }
     });
 
-    const reactionDistance = 120; // Distance in pixels to trigger movement
-    const moveDistance = 150; // How far to move aggressively
+    // Mobile-optimized distances - less aggressive
+    const reactionDistance = isMobile ? 80 : 100; // Closer trigger for easier interaction
+    const moveDistance = isMobile ? 80 : 100; // Less aggressive movement, still playful
 
     function handleProximity(x, y) {
         if (noBtn.style.display === 'none') return;
@@ -102,56 +126,110 @@ document.addEventListener('DOMContentLoaded', () => {
         if (noBtn.style.position !== 'fixed') {
             noBtn.style.position = 'fixed';
             noBtn.style.zIndex = '100';
-            noBtn.style.transition = 'left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), top 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)'; // Smooth ease-out
         }
 
-        // Calculate vector from cursor to button
-        let deltaX = btnX - cursorX;
-        let deltaY = btnY - cursorY;
+        // Mobile-optimized animations - smoother and less bouncy
+        const transitionDuration = isMobile ? '0.6s' : '0.7s';
+        const easingFunction = 'cubic-bezier(0.25, 0.8, 0.25, 1)'; // Smooth easing for both
+        
+        noBtn.style.transition = `left ${transitionDuration} ${easingFunction}, top ${transitionDuration} ${easingFunction}, transform 0.15s ease`;
+        
+        // Subtle pop effect
+        const popScale = '1.05';
+        noBtn.style.transform = `scale(${popScale})`;
+        setTimeout(() => {
+            noBtn.style.transform = 'scale(1)';
+        }, 100);
 
-        // If cursor is exactly on button (click attempt), move random
-        if (deltaX === 0 && deltaY === 0) {
-            deltaX = Math.random() - 0.5;
-            deltaY = Math.random() - 0.5;
+        // Get viewport dimensions
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const btnRect = noBtn.getBoundingClientRect();
+        const btnWidth = btnRect.width;
+        const btnHeight = btnRect.height;
+
+        // Safe boundaries
+        const margin = isMobile ? 30 : 25;
+        const minX = margin;
+        const maxX = viewportWidth - btnWidth - margin;
+        const minY = margin;
+        const maxY = viewportHeight - btnHeight - margin;
+
+        // Account for iOS Safari UI on mobile
+        let safeMinY = minY;
+        let safeMaxY = maxY;
+        if (isMobile) {
+            safeMinY = Math.max(margin, viewportHeight * 0.08);
+            safeMaxY = Math.min(maxY, viewportHeight * 0.85);
         }
 
-        // Normalize
-        const length = Math.hypot(deltaX, deltaY);
-        const dirX = deltaX / length;
-        const dirY = deltaY / length;
-
-        // Move away aggressively
-        let newX = btnX + dirX * moveDistance - (noBtn.offsetWidth / 2);
-        let newY = btnY + dirY * moveDistance - (noBtn.offsetHeight / 2);
-
-        // Enhanced boundary checks to keep button well within screen
-        const margin = 50; // Increased margin to keep button more visible
-        const maxX = window.innerWidth - noBtn.offsetWidth - margin;
-        const maxY = window.innerHeight - noBtn.offsetHeight - margin;
-
-        // If the new position would go off screen, find a better position
-        if (newX < margin || newX > maxX || newY < margin || newY > maxY) {
-            // Find alternative positions - try different angles
-            const angles = [45, -45, 135, -135, 90, -90, 0, 180];
-            for (let angle of angles) {
-                const rad = (angle * Math.PI) / 180;
-                const testX = btnX + Math.cos(rad) * moveDistance - (noBtn.offsetWidth / 2);
-                const testY = btnY + Math.sin(rad) * moveDistance - (noBtn.offsetHeight / 2);
-                
-                if (testX >= margin && testX <= maxX && testY >= margin && testY <= maxY) {
-                    newX = testX;
-                    newY = testY;
-                    break;
-                }
+        // Add randomness to movement - mix of directional and random
+        let newX, newY;
+        
+        // 60% chance for semi-random movement, 40% for directional
+        if (Math.random() > 0.4) {
+            // Random positioning with some bias away from cursor
+            const randomZones = [
+                { x: viewportWidth * 0.15, y: safeMinY + (safeMaxY - safeMinY) * 0.2 },
+                { x: viewportWidth * 0.85 - btnWidth, y: safeMinY + (safeMaxY - safeMinY) * 0.2 },
+                { x: viewportWidth * 0.15, y: safeMinY + (safeMaxY - safeMinY) * 0.8 },
+                { x: viewportWidth * 0.85 - btnWidth, y: safeMinY + (safeMaxY - safeMinY) * 0.8 },
+                { x: viewportWidth * 0.5 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.15 },
+                { x: viewportWidth * 0.5 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.75 },
+                { x: viewportWidth * 0.3 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 },
+                { x: viewportWidth * 0.7 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 }
+            ];
+            
+            // Filter out zones too close to cursor
+            const validZones = randomZones.filter(zone => {
+                const zoneCenterX = zone.x + btnWidth / 2;
+                const zoneCenterY = zone.y + btnHeight / 2;
+                const distance = Math.hypot(cursorX - zoneCenterX, cursorY - zoneCenterY);
+                return distance > reactionDistance * 1.5; // Must be reasonably far from cursor
+            });
+            
+            if (validZones.length > 0) {
+                const randomZone = validZones[Math.floor(Math.random() * validZones.length)];
+                // Add some randomness within the zone
+                newX = randomZone.x + (Math.random() - 0.5) * 40;
+                newY = randomZone.y + (Math.random() - 0.5) * 30;
+            } else {
+                // Fallback to opposite corner
+                newX = cursorX < viewportWidth / 2 ? maxX - 50 : minX + 50;
+                newY = cursorY < viewportHeight / 2 ? safeMaxY - 30 : safeMinY + 30;
             }
+        } else {
+            // Directional movement (less aggressive)
+            let deltaX = btnX - cursorX;
+            let deltaY = btnY - cursorY;
+
+            // If too close, add some randomness
+            if (Math.hypot(deltaX, deltaY) < 50) {
+                deltaX += (Math.random() - 0.5) * 100;
+                deltaY += (Math.random() - 0.5) * 100;
+            }
+
+            // Normalize and apply gentler movement
+            const length = Math.hypot(deltaX, deltaY);
+            const dirX = deltaX / length;
+            const dirY = deltaY / length;
+
+            newX = btnX + dirX * moveDistance - (btnWidth / 2);
+            newY = btnY + dirY * moveDistance - (btnHeight / 2);
         }
 
-        // Final clamp as fallback to ensure it stays on screen
-        newX = Math.max(margin, Math.min(newX, maxX));
-        newY = Math.max(margin, Math.min(newY, maxY));
+        // Ensure button stays within boundaries
+        newX = Math.max(minX, Math.min(newX, maxX));
+        newY = Math.max(safeMinY, Math.min(newY, safeMaxY));
 
+        // Apply position
         noBtn.style.left = `${newX}px`;
         noBtn.style.top = `${newY}px`;
+
+        // Gentle haptic feedback on mobile
+        if (isMobile && navigator.vibrate) {
+            navigator.vibrate(30); // Even shorter vibration
+        }
     }
 
     function growYesButton() {
