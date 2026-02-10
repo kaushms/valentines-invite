@@ -148,19 +148,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnWidth = btnRect.width;
         const btnHeight = btnRect.height;
 
-        // Safe boundaries
-        const margin = isMobile ? 30 : 25;
+        // Safe boundaries - ensure button stays fully visible
+        const margin = isMobile ? 20 : 15;
         const minX = margin;
         const maxX = viewportWidth - btnWidth - margin;
         const minY = margin;
         const maxY = viewportHeight - btnHeight - margin;
 
-        // Account for iOS Safari UI on mobile
+        // Account for iOS Safari UI and ensure button is always visible
         let safeMinY = minY;
         let safeMaxY = maxY;
         if (isMobile) {
-            safeMinY = Math.max(margin, viewportHeight * 0.08);
-            safeMaxY = Math.min(maxY, viewportHeight * 0.85);
+            // More conservative boundaries for mobile to account for browser UI
+            safeMinY = Math.max(margin, viewportHeight * 0.1);
+            safeMaxY = Math.min(maxY, viewportHeight * 0.8);
+        } else {
+            // Desktop - ensure we don't go too close to edges
+            safeMaxY = Math.min(maxY, viewportHeight - btnHeight - 40);
+        }
+        
+        // Debug: ensure boundaries are valid
+        if (safeMaxY <= safeMinY) {
+            safeMaxY = viewportHeight - btnHeight - 20;
+            safeMinY = 20;
         }
 
         // Get Yes button position to avoid overlap
@@ -275,6 +285,10 @@ document.addEventListener('DOMContentLoaded', () => {
             newX = bestCorner.x;
             newY = bestCorner.y;
         }
+
+        // Final safety check - ensure button stays completely within viewport
+        newX = Math.max(0, Math.min(newX, viewportWidth - btnWidth));
+        newY = Math.max(0, Math.min(newY, viewportHeight - btnHeight));
 
         // Apply position
         noBtn.style.left = `${newX}px`;
