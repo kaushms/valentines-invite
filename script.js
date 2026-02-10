@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const reactionDistance = 150; // Distance in pixels to trigger movement
-    const moveDistance = 200; // How far to run away
+    const reactionDistance = 80; // Distance in pixels to trigger movement
+    const moveDistance = 60; // How far to move slightly
 
     function handleProximity(x, y) {
         if (noBtn.style.display === 'none') return;
@@ -120,19 +120,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const dirX = deltaX / length;
         const dirY = deltaY / length;
 
-        // Move away
+        // Move away slighty
         let newX = btnX + dirX * moveDistance - (noBtn.offsetWidth / 2);
         let newY = btnY + dirY * moveDistance - (noBtn.offsetHeight / 2);
 
-        // Boundary checks (bounce off walls)
+        // Boundary checks (clamp to screen)
         const margin = 20;
         const maxX = window.innerWidth - noBtn.offsetWidth - margin;
         const maxY = window.innerHeight - noBtn.offsetHeight - margin;
 
-        if (newX < margin) newX = margin + 50; // Bounce back a bit
-        if (newX > maxX) newX = maxX - 50;
-        if (newY < margin) newY = margin + 50;
-        if (newY > maxY) newY = maxY - 50;
+        // Clamp values to ensure it stays on screen
+        newX = Math.max(margin, Math.min(newX, maxX));
+        newY = Math.max(margin, Math.min(newY, maxY));
 
         noBtn.style.left = `${newX}px`;
         noBtn.style.top = `${newY}px`;
