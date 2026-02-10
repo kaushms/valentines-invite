@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Be My Valentine?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Pacifico&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="background-container">
+        <!-- Background images preloaded to avoid flicker -->
+        <div class="bg-pattern"></div>
+        <div class="cat-container">
+            <img src="assets/cat_0_neutral.png" id="cat-img" alt="Cute Cat" class="cat-img active">
+        </div>
+    </div>
+
+    <main class="content-wrapper">
+        <div class="glass-card" id="main-card">
+            <h1 class="title">Will you be my Valentine, Moni ?</h1>
+            <div class="buttons-container">
+                <button id="yes-btn" class="btn btn-yes">Yes!</button>
+                <button id="no-btn" class="btn btn-no">No</button>
+            </div>
+        </div>
+
+        <div id="success-message" class="hidden">
+            <h1 class="success-text">Yayyy!</h1>
+        </div>
+    </main>
+
+    <div id="hearts-container"></div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

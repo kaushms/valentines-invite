@@ -1,0 +1,239 @@
+:root {
+    --primary-color: #ff4d6d;
+    --secondary-color: #ff8fa3;
+    --background-pink: #fff0f3;
+    --text-color: #590d22;
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.8);
+    --card-shadow: 0 8px 32px 0 rgba(255, 77, 109, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--background-pink);
+    height: 100vh;
+    height: 100dvh;
+    /* Dynamic viewport height for mobile */
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.background-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.cat-container {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 50vh;
+    /* Takes up bottom half */
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    z-index: 10;
+    /* Bring in front of background but behind modal if needed, actually user wants it visible so maybe side-by-side */
+    pointer-events: none;
+}
+
+.cat-img {
+    width: auto;
+    height: 100%;
+    max-height: 50vh;
+    /* Adjust based on asset aspect ratio */
+    max-width: 90vw;
+    object-fit: contain;
+    filter: drop-shadow(-5px 5px 15px rgba(0, 0, 0, 0.2));
+    transition: transform 0.2s ease, opacity 0.3s ease;
+    transform-origin: bottom center;
+}
+
+.content-wrapper {
+    position: relative;
+    z-index: 20;
+    /* Above cat */
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    /* Move to top */
+    padding-top: 15vh;
+    /* Initial gap */
+}
+
+/* Landscape/Desktop overrides if needed, but focusing on Mobile */
+@media (min-width: 768px) {
+    .cat-container {
+        width: 50%;
+        height: 80vh;
+        right: 5%;
+    }
+
+    .content-wrapper {
+        width: 50%;
+        margin-left: 0;
+        justify-content: center;
+        padding-top: 0;
+        align-items: flex-start;
+        padding-left: 10%;
+    }
+}
+
+
+.shake {
+    animation: shake 0.5s;
+    animation-iteration-count: infinite;
+}
+
+
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 32px 24px;
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--card-shadow);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.title {
+    font-family: 'Pacifico', cursive;
+    color: var(--text-color);
+    font-size: 2rem;
+    margin-bottom: 32px;
+    line-height: 1.2;
+}
+
+.buttons-container {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    position: relative;
+    height: 60px;
+    /* Reserved space for buttons */
+}
+
+.btn {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 12px 32px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-yes {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-yes:active {
+    transform: scale(0.95);
+}
+
+.btn-no {
+    background-color: white;
+    color: var(--text-color);
+    position: relative;
+    /* Needs to be relative/absolute for movement */
+    transition: left 0.2s ease, top 0.2s ease;
+    /* Smooth movement when flying away */
+}
+
+/* Success State */
+#success-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    text-align: center;
+    width: 100%;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.success-text {
+    font-family: 'Pacifico', cursive;
+    font-size: 3rem;
+    color: var(--primary-color);
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.visible-success {
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) scale(1) !important;
+}
+
+/* Hearts Animation particles */
+.heart-shape {
+    position: fixed;
+    top: -10vh;
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    background-color: var(--primary-color);
+    transform: rotate(-45deg);
+    animation: fall 3s linear forwards;
+    z-index: 5;
+}
+
+.heart-shape::before,
+.heart-shape::after {
+    content: "";
+    width: 100%;
+    height: 100%;
+    background-color: inherit;
+    /* Inherit random color */
+    border-radius: 50%;
+    position: absolute;
+}
+
+.heart-shape::before {
+    top: -50%;
+    left: 0;
+}
+
+.heart-shape::after {
+    top: 0;
+    right: -50%;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(110vh) rotate(-45deg);
+        /* Maintain -45deg rotation */
+    }
+}
