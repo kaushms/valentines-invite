@@ -5,29 +5,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainCard = document.getElementById('main-card');
     const successMessage = document.getElementById('success-message');
     const heartsContainer = document.getElementById('hearts-container');
+    const animalToggle = document.getElementById('animal-toggle');
+    const catOption = document.getElementById('cat-option');
+    const dogOption = document.getElementById('dog-option');
 
     let angerLevel = 0;
     const maxAnger = 3;
 
     // Cat image paths
-    const catImages = [
-        'assets/cat_0_neutral.png',
-        'assets/cat_1_annoyed.png',
-        'assets/cat_2_angry.png',
-        'assets/cat_3_furious.png',
-        'assets/cat_happy.png'
-    ];
+    const animalImages = {
+        cat: [
+            'assets/cat_0_neutral.png',
+            'assets/cat_1_annoyed.png',
+            'assets/cat_2_angry.png',
+            'assets/cat_3_furious.png',
+            'assets/cat_happy.png'
+        ],
+        dog: [
+            'assets/dog_0_neutral.png',
+            'assets/dog_1_annoyed.png',
+            'assets/dog_2_angry.png',
+            'assets/dog_3_furious.png',
+            'assets/dog_happy.png'
+        ]
+    };
+
+    let currentAnimal = 'cat'; // Default animal
 
     // Preload images
-    catImages.forEach(src => {
-        const img = new Image();
-        img.src = src;
+    // Preload images for both cat and dog
+    Object.values(animalImages).forEach(imagesArray => {
+        imagesArray.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
     });
 
-    // Mobile detection
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                    window.innerWidth <= 768 || 
-                    'ontouchstart' in window;
+    catOption.addEventListener('click', () => {
+        currentAnimal = 'cat';
+        animalToggle.classList.add('cat-active');
+        animalToggle.classList.remove('dog-active');
+        angerLevel = 0;
+        updateAnimal();
+    });
+
+    dogOption.addEventListener('click', () => {
+        currentAnimal = 'dog';
+        animalToggle.classList.add('dog-active');
+        animalToggle.classList.remove('cat-active');
+        angerLevel = 0;
+        updateAnimal();
+    });
+
+    // Initialize toggle visual state
+    animalToggle.classList.add(`${currentAnimal}-active`);
+
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        window.innerWidth <= 768 ||
+        'ontouchstart' in window;
 
     // Proximity detection for "No" button
     document.addEventListener('mousemove', (e) => {
@@ -87,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         angerTimeout = setTimeout(() => {
             if (angerLevel < maxAnger) {
                 angerLevel++;
-                updateCat();
+                updateAnimal();
                 growYesButton();
             } else {
                 if (!catImg.classList.contains('shake')) {
@@ -104,6 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Force move if clicked
         const rect = noBtn.getBoundingClientRect();
         moveButtonAway(e.clientX, e.clientY, rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+        // Also increase anger if clicked (user was fast enough!)
+        increaseAnger();
     });
 
     // Handle "Yes" button click
@@ -111,14 +150,15 @@ document.addEventListener('DOMContentLoaded', () => {
         showSuccess();
     });
 
-    function updateCat() {
-        catImg.src = catImages[angerLevel];
+    function updateAnimal() {
+        catImg.src = animalImages[currentAnimal][angerLevel];
+        catImg.alt = `Cute ${currentAnimal} looking ${['neutral', 'annoyed', 'angry', 'furious', 'happy'][angerLevel]}`;
 
         // Reset transforms to handle state changes cleanly
         catImg.style.transform = 'none';
 
         if (angerLevel === 3) {
-            document.body.style.backgroundColor = '#ffe0e6';
+            document.body.style.backgroundColor = currentAnimal === 'cat' ? '#ffe0e6' : '#e6f2ff'; // Different background for dog
         }
     }
 
@@ -131,9 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mobile-optimized animations - smoother and less bouncy
         const transitionDuration = isMobile ? '0.6s' : '0.7s';
         const easingFunction = 'cubic-bezier(0.25, 0.8, 0.25, 1)'; // Smooth easing for both
-        
+
         noBtn.style.transition = `left ${transitionDuration} ${easingFunction}, top ${transitionDuration} ${easingFunction}, transform 0.15s ease`;
-        
+
         // Subtle pop effect
         const popScale = '1.05';
         noBtn.style.transform = `scale(${popScale})`;
@@ -166,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Desktop - ensure we don't go too close to edges
             safeMaxY = Math.min(maxY, viewportHeight - btnHeight - 40);
         }
-        
+
         // Debug: ensure boundaries are valid
         if (safeMaxY <= safeMinY) {
             safeMaxY = viewportHeight - btnHeight - 20;
@@ -179,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const yesBtnY = yesBtnRect.top;
         const yesBtnWidth = yesBtnRect.width;
         const yesBtnHeight = yesBtnRect.height;
-        
+
         // Minimum distance between buttons to prevent overlap
         const minButtonDistance = Math.max(yesBtnWidth, yesBtnHeight) + (isMobile ? 60 : 40);
 
@@ -196,10 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let newX, newY;
         let attempts = 0;
         const maxAttempts = 20;
-        
+
         do {
             attempts++;
-            
+
             // 60% chance for semi-random movement, 40% for directional
             if (Math.random() > 0.4) {
                 // Random positioning with some bias away from cursor
@@ -213,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     { x: viewportWidth * 0.3 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 },
                     { x: viewportWidth * 0.7 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 }
                 ];
-                
+
                 // Filter out zones too close to cursor AND too close to Yes button
                 const validZones = randomZones.filter(zone => {
                     const zoneCenterX = zone.x + btnWidth / 2;
@@ -222,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const distanceFromYesBtn = Math.hypot((yesBtnX + yesBtnWidth / 2) - zoneCenterX, (yesBtnY + yesBtnHeight / 2) - zoneCenterY);
                     return distanceFromCursor > reactionDistance * 1.5 && distanceFromYesBtn > minButtonDistance;
                 });
-                
+
                 if (validZones.length > 0) {
                     const randomZone = validZones[Math.floor(Math.random() * validZones.length)];
                     // Add some randomness within the zone
@@ -252,13 +292,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 newX = btnX + dirX * moveDistance - (btnWidth / 2);
                 newY = btnY + dirY * moveDistance - (btnHeight / 2);
             }
-            
+
             // Ensure button stays within boundaries
             newX = Math.max(minX, Math.min(newX, maxX));
             newY = Math.max(safeMinY, Math.min(newY, safeMaxY));
-            
+
         } while (checkOverlapWithYesBtn(newX, newY) && attempts < maxAttempts);
-        
+
         // If we couldn't find a non-overlapping position after max attempts,
         // place it in a safe corner far from the Yes button
         if (attempts >= maxAttempts) {
@@ -268,20 +308,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 { x: minX, y: safeMaxY },
                 { x: maxX, y: safeMaxY }
             ];
-            
+
             // Find the corner furthest from the Yes button
             let bestCorner = corners[0];
             let maxDistance = 0;
-            
+
             corners.forEach(corner => {
-                const distance = Math.hypot((yesBtnX + yesBtnWidth / 2) - (corner.x + btnWidth / 2), 
-                                         (yesBtnY + yesBtnHeight / 2) - (corner.y + btnHeight / 2));
+                const distance = Math.hypot((yesBtnX + yesBtnWidth / 2) - (corner.x + btnWidth / 2),
+                    (yesBtnY + yesBtnHeight / 2) - (corner.y + btnHeight / 2));
                 if (distance > maxDistance) {
                     maxDistance = distance;
                     bestCorner = corner;
                 }
             });
-            
+
             newX = bestCorner.x;
             newY = bestCorner.y;
         }
@@ -307,8 +347,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showSuccess() {
-        // Make cat happy
-        catImg.src = catImages[4]; // Happy cat
+        // Make animal happy
+        catImg.src = animalImages[currentAnimal][4]; // Happy animal
         catImg.classList.remove('shake');
 
         // Visuals for happy cat
