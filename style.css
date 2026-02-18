@@ -68,9 +68,12 @@ body {
 }
 
 @keyframes breathe {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1) translateY(0);
     }
+
     50% {
         transform: scale(1.02) translateY(-5px);
     }
@@ -84,9 +87,11 @@ body {
     0% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.1);
     }
+
     100% {
         transform: scale(1);
     }
@@ -175,7 +180,8 @@ body {
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     /* Mobile touch optimizations */
-    min-height: 48px; /* iOS minimum touch target */
+    min-height: 48px;
+    /* iOS minimum touch target */
     min-width: 88px;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -229,6 +235,9 @@ body {
     }
 }
 
+}
+}
+
 .btn-yes {
     background-color: var(--primary-color);
     color: white;
@@ -246,6 +255,8 @@ body {
     transition: left 0.2s ease, top 0.2s ease;
     /* Smooth movement when flying away */
 }
+
+
 
 /* Success State */
 #success-message {
@@ -310,9 +321,156 @@ body {
     right: -50%;
 }
 
-@keyframes fall {
-    to {
-        transform: translateY(110vh) rotate(-45deg);
-        /* Maintain -45deg rotation */
-    }
+
+
+/* Settings Modal & Creator UI */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal:not(.hidden) {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.settings-card {
+    position: relative;
+    width: 90%;
+    max-width: 450px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: var(--card-shadow);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.modal:not(.hidden) .settings-card {
+    transform: scale(1);
+}
+
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-color);
+    font-weight: 700;
+}
+
+.input-group input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.char-btn {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--primary-color);
+    border-radius: 12px;
+    padding: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.char-btn.active {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.05);
+}
+
+.close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: var(--text-color);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.close-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.icon-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 50;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.icon-btn:hover {
+    transform: rotate(45deg);
+}
+
+/* Reply Section */
+.reply-container {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#reply-input {
+    width: 100%;
+    height: 80px;
+    padding: 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    font-family: 'Outfit', sans-serif;
+    resize: none;
 }

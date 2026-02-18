@@ -21,15 +21,36 @@
         </div>
     </div>
 
-    <div class="animal-toggle" id="animal-toggle">
-        <button class="toggle-option" id="cat-option">Cat</button>
-        <button class="toggle-option" id="dog-option">Dog</button>
+    <!-- Creator/Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="glass-card settings-card">
+            <h2>Create Your Proposal</h2>
+            <div class="input-group">
+                <label>Valentine's Name</label>
+                <input type="text" id="recipient-name" placeholder="Enter name">
+            </div>
+            <div class="input-group">
+                <label>Choose Character</label>
+                <div class="character-grid">
+                    <button class="char-btn active" data-animal="cat">🐱 Cat</button>
+                    <button class="char-btn" data-animal="dog">🐶 Dog</button>
+                    <button class="char-btn" data-animal="panda">🐼 Panda</button>
+                    <button class="char-btn" data-animal="orca">🐳 Orca</button>
+                </div>
+            </div>
+            <button id="generate-link-btn" class="btn btn-yes">Copy Link</button>
+            <button id="close-settings-btn" class="close-btn">×</button>
+        </div>
     </div>
 
+    <!-- Button to open settings -->
+    <button id="open-settings-btn" class="icon-btn">⚙️</button>
+
     <main class="content-wrapper">
+
+
         <div class="glass-card" id="main-card">
-            <h1 class="title">Will you be my Valentine, Moni ?</h1>
-            <div class="message">Which do you prefer?</div>
+            <h1 class="title"></h1>
             <div class="buttons-container">
                 <button id="yes-btn" class="btn btn-yes">Yes!</button>
                 <button id="no-btn" class="btn btn-no">No</button>
@@ -38,6 +59,10 @@
 
         <div id="success-message" class="hidden">
             <h1 class="success-text">Yayyy!</h1>
+            <div class="reply-container">
+                <textarea id="reply-input" placeholder="Write a message back... (Optional)"></textarea>
+                <button id="send-reply-btn" class="btn btn-yes">Send Message 💌</button>
+            </div>
         </div>
     </main>
 

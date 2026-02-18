@@ -1,18 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
     const noBtn = document.getElementById('no-btn');
     const yesBtn = document.getElementById('yes-btn');
     const catImg = document.getElementById('cat-img');
     const mainCard = document.getElementById('main-card');
     const successMessage = document.getElementById('success-message');
     const heartsContainer = document.getElementById('hearts-container');
-    const animalToggle = document.getElementById('animal-toggle');
-    const catOption = document.getElementById('cat-option');
-    const dogOption = document.getElementById('dog-option');
+    const mainTitle = document.getElementById('main-title');
 
+    // Settings / Creator Elements
+    const settingsModal = document.getElementById('settings-modal');
+    const openSettingsBtn = document.getElementById('open-settings-btn');
+    const closeSettingsBtn = document.getElementById('close-settings-btn');
+    const generateLinkBtn = document.getElementById('generate-link-btn');
+    const recipientNameInput = document.getElementById('recipient-name');
+    const charBtns = document.querySelectorAll('.char-btn');
+
+    // Reply Elements
+    const replyInput = document.getElementById('reply-input');
+    const sendReplyBtn = document.getElementById('send-reply-btn');
+
+    // State
     let angerLevel = 0;
     const maxAnger = 3;
 
-    // Cat image paths
+    // Default config
+    let currentAnimal = 'cat';
+    let recipientName = 'Valentine';
+
+    // Asset Map
     const animalImages = {
         cat: [
             'assets/cat_0_neutral.png',
@@ -27,13 +43,24 @@ document.addEventListener('DOMContentLoaded', () => {
             'assets/dog_2_angry.png',
             'assets/dog_3_furious.png',
             'assets/dog_happy.png'
+        ],
+        panda: [
+            'assets/panda_0_neutral.png',
+            'assets/panda_1_annoyed.png',
+            'assets/panda_2_angry.png',
+            'assets/panda_3_furious.png',
+            'assets/panda_happy.png'
+        ],
+        orca: [
+            'assets/orca_0_neutral.png',
+            'assets/orca_1_annoyed.png',
+            'assets/orca_2_angry.png',
+            'assets/orca_3_furious.png',
+            'assets/orca_happy.png'
         ]
     };
 
-    let currentAnimal = 'cat'; // Default animal
-
-    // Preload images
-    // Preload images for both cat and dog
+    // Preload all images
     Object.values(animalImages).forEach(imagesArray => {
         imagesArray.forEach(src => {
             const img = new Image();
@@ -41,63 +68,154 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    catOption.addEventListener('click', () => {
-        currentAnimal = 'cat';
-        animalToggle.classList.add('cat-active');
-        animalToggle.classList.remove('dog-active');
-        angerLevel = 0;
-        updateAnimal();
+    // --- Initialization ---
+
+    function init() {
+        // Parse URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const nameParam = urlParams.get('name');
+        const animalParam = urlParams.get('animal');
+
+        if (nameParam) {
+            recipientName = nameParam;
+            recipientNameInput.value = recipientName;
+        } else {
+            // If no name, assume Creator Mode -> Show Settings
+            settingsModal.classList.remove('hidden');
+        }
+
+        if (animalParam && animalImages[animalParam]) {
+            currentAnimal = animalParam;
+            updateCharBtnActiveState(currentAnimal);
+        }
+
+        updateUI();
+    }
+
+    function updateUI() {
+        // Update Title
+        mainTitle.textContent = `Will you be my Valentine, ${recipientName}?`;
+
+        // Update Image
+        updateAnimalImage();
+
+        // Update background based on animal (optional subtle change)
+        updateThemeColors();
+    }
+
+    function updateAnimalImage() {
+        catImg.src = animalImages[currentAnimal][angerLevel];
+        catImg.alt = `Cute ${currentAnimal} looking ${['neutral', 'annoyed', 'angry', 'furious', 'happy'][angerLevel]}`;
+
+        // Reset transforms
+        catImg.style.transform = 'none';
+
+        if (angerLevel === 3) {
+            document.body.style.backgroundColor = '#ffe0e6'; // Default angry bg
+            if (currentAnimal === 'dog') document.body.style.backgroundColor = '#e6f2ff';
+            if (currentAnimal === 'panda') document.body.style.backgroundColor = '#e8f5e9'; // Light green ish
+            if (currentAnimal === 'orca') document.body.style.backgroundColor = '#e0f7fa'; // Light cyan
+        } else {
+            document.body.style.backgroundColor = '#fff0f3'; // Reset to default pink
+        }
+    }
+
+    function updateThemeColors() {
+        // Could be expanded to change primary colors based on animal
+    }
+
+    function updateCharBtnActiveState(animal) {
+        charBtns.forEach(btn => {
+            if (btn.dataset.animal === animal) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    // --- Settings / Creator Logic ---
+
+    openSettingsBtn.addEventListener('click', () => {
+        settingsModal.classList.remove('hidden');
     });
 
-    dogOption.addEventListener('click', () => {
-        currentAnimal = 'dog';
-        animalToggle.classList.add('dog-active');
-        animalToggle.classList.remove('cat-active');
-        angerLevel = 0;
-        updateAnimal();
+    closeSettingsBtn.addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
     });
 
-    // Initialize toggle visual state
-    animalToggle.classList.add(`${currentAnimal}-active`);
+    // Close on click outside card
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+            settingsModal.classList.add('hidden');
+        }
+    });
+
+    charBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentAnimal = btn.dataset.animal;
+            updateCharBtnActiveState(currentAnimal);
+            angerLevel = 0;
+            updateUI();
+        });
+    });
+
+    recipientNameInput.addEventListener('input', (e) => {
+        recipientName = e.target.value || 'Valentine';
+        updateUI();
+    });
+
+    generateLinkBtn.addEventListener('click', () => {
+        const baseUrl = window.location.origin + window.location.pathname;
+        const params = new URLSearchParams();
+        params.set('name', recipientName);
+        params.set('animal', currentAnimal);
+
+        const shareUrl = `${baseUrl}?${params.toString()}`;
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            const originalText = generateLinkBtn.textContent;
+            generateLinkBtn.textContent = 'Link Copied! 📋';
+            setTimeout(() => {
+                generateLinkBtn.textContent = originalText;
+                settingsModal.classList.add('hidden');
+            }, 1500);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            prompt('Copy this link:', shareUrl);
+        });
+    });
 
 
+    // --- Interaction Logic (The Game) ---
+
+    // Mobile check
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
         window.innerWidth <= 768 ||
         'ontouchstart' in window;
 
-    // Proximity detection for "No" button
+    // Proximity
     document.addEventListener('mousemove', (e) => {
-        if (!isMobile) { // Only on desktop
-            handleProximity(e.clientX, e.clientY);
-        }
-    });
-
-    // Enhanced touch handling for mobile
-    document.addEventListener('touchstart', (e) => {
-        if (e.touches.length > 0) {
-            const touch = e.touches[0];
-            handleProximity(touch.clientX, touch.clientY);
-            // Prevent default to avoid iOS zoom/scroll issues
-            if (e.target === noBtn) {
-                e.preventDefault();
-            }
-        }
+        if (!isMobile) handleProximity(e.clientX, e.clientY);
     });
 
     document.addEventListener('touchmove', (e) => {
         if (e.touches.length > 0) {
-            const touch = e.touches[0];
-            handleProximity(touch.clientX, touch.clientY);
-            // Prevent scrolling when interacting with button area
-            if (e.target === noBtn) {
-                e.preventDefault();
-            }
+            handleProximity(e.touches[0].clientX, e.touches[0].clientY);
+            if (e.target === noBtn) e.preventDefault();
         }
-    });
+    }, { passive: false });
 
-    // Mobile-optimized distances - less aggressive
-    const reactionDistance = isMobile ? 80 : 100; // Closer trigger for easier interaction
-    const moveDistance = isMobile ? 80 : 100; // Less aggressive movement, still playful
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            handleProximity(e.touches[0].clientX, e.touches[0].clientY);
+            if (e.target === noBtn) e.preventDefault();
+        }
+    }, { passive: false });
+
+
+    const reactionDistance = isMobile ? 80 : 100;
 
     function handleProximity(x, y) {
         if (noBtn.style.display === 'none') return;
@@ -114,16 +232,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    let angerTimeout;
+    noBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const rect = noBtn.getBoundingClientRect();
+        moveButtonAway(e.clientX, e.clientY, rect.left + rect.width / 2, rect.top + rect.height / 2);
+        increaseAnger();
+    });
 
+    let angerTimeout;
     function increaseAnger() {
-        // Debounce anger increase slightly
         if (angerTimeout) return;
 
         angerTimeout = setTimeout(() => {
             if (angerLevel < maxAnger) {
                 angerLevel++;
-                updateAnimal();
+                updateAnimalImage();
                 growYesButton();
             } else {
                 if (!catImg.classList.contains('shake')) {
@@ -135,270 +258,97 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 200);
     }
 
-    noBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        // Force move if clicked
-        const rect = noBtn.getBoundingClientRect();
-        moveButtonAway(e.clientX, e.clientY, rect.left + rect.width / 2, rect.top + rect.height / 2);
-
-        // Also increase anger if clicked (user was fast enough!)
-        increaseAnger();
-    });
-
-    // Handle "Yes" button click
-    yesBtn.addEventListener('click', () => {
-        showSuccess();
-    });
-
-    function updateAnimal() {
-        catImg.src = animalImages[currentAnimal][angerLevel];
-        catImg.alt = `Cute ${currentAnimal} looking ${['neutral', 'annoyed', 'angry', 'furious', 'happy'][angerLevel]}`;
-
-        // Reset transforms to handle state changes cleanly
-        catImg.style.transform = 'none';
-
-        if (angerLevel === 3) {
-            document.body.style.backgroundColor = currentAnimal === 'cat' ? '#ffe0e6' : '#e6f2ff'; // Different background for dog
-        }
-    }
-
     function moveButtonAway(cursorX, cursorY, btnX, btnY) {
         if (noBtn.style.position !== 'fixed') {
             noBtn.style.position = 'fixed';
             noBtn.style.zIndex = '100';
         }
 
-        // Mobile-optimized animations - smoother and less bouncy
-        const transitionDuration = isMobile ? '0.6s' : '0.7s';
-        const easingFunction = 'cubic-bezier(0.25, 0.8, 0.25, 1)'; // Smooth easing for both
-
-        noBtn.style.transition = `left ${transitionDuration} ${easingFunction}, top ${transitionDuration} ${easingFunction}, transform 0.15s ease`;
-
-        // Subtle pop effect
-        const popScale = '1.05';
-        noBtn.style.transform = `scale(${popScale})`;
-        setTimeout(() => {
-            noBtn.style.transform = 'scale(1)';
-        }, 100);
-
-        // Get viewport dimensions
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         const btnRect = noBtn.getBoundingClientRect();
         const btnWidth = btnRect.width;
         const btnHeight = btnRect.height;
 
-        // Safe boundaries - ensure button stays fully visible
-        const margin = isMobile ? 20 : 15;
+        // Boundaries
+        const margin = 20;
         const minX = margin;
         const maxX = viewportWidth - btnWidth - margin;
         const minY = margin;
         const maxY = viewportHeight - btnHeight - margin;
 
-        // Account for iOS Safari UI and ensure button is always visible
-        let safeMinY = minY;
-        let safeMaxY = maxY;
-        if (isMobile) {
-            // More conservative boundaries for mobile to account for browser UI
-            safeMinY = Math.max(margin, viewportHeight * 0.1);
-            safeMaxY = Math.min(maxY, viewportHeight * 0.8);
-        } else {
-            // Desktop - ensure we don't go too close to edges
-            safeMaxY = Math.min(maxY, viewportHeight - btnHeight - 40);
-        }
+        // Random pos
+        let newX = Math.random() * (maxX - minX) + minX;
+        let newY = Math.random() * (maxY - minY) + minY;
 
-        // Debug: ensure boundaries are valid
-        if (safeMaxY <= safeMinY) {
-            safeMaxY = viewportHeight - btnHeight - 20;
-            safeMinY = 20;
-        }
+        // Simple logic: just move it anywhere valid for now to keep it brisk
+        // (Simplified from previous version to reduce code bloat, but still effective)
 
-        // Get Yes button position to avoid overlap
-        const yesBtnRect = yesBtn.getBoundingClientRect();
-        const yesBtnX = yesBtnRect.left;
-        const yesBtnY = yesBtnRect.top;
-        const yesBtnWidth = yesBtnRect.width;
-        const yesBtnHeight = yesBtnRect.height;
-
-        // Minimum distance between buttons to prevent overlap
-        const minButtonDistance = Math.max(yesBtnWidth, yesBtnHeight) + (isMobile ? 60 : 40);
-
-        function checkOverlapWithYesBtn(x, y) {
-            const centerX = x + btnWidth / 2;
-            const centerY = y + btnHeight / 2;
-            const yesCenterX = yesBtnX + yesBtnWidth / 2;
-            const yesCenterY = yesBtnY + yesBtnHeight / 2;
-            const distance = Math.hypot(centerX - yesCenterX, centerY - yesCenterY);
-            return distance < minButtonDistance;
-        }
-
-        // Add randomness to movement - mix of directional and random
-        let newX, newY;
-        let attempts = 0;
-        const maxAttempts = 20;
-
-        do {
-            attempts++;
-
-            // 60% chance for semi-random movement, 40% for directional
-            if (Math.random() > 0.4) {
-                // Random positioning with some bias away from cursor
-                const randomZones = [
-                    { x: viewportWidth * 0.15, y: safeMinY + (safeMaxY - safeMinY) * 0.2 },
-                    { x: viewportWidth * 0.85 - btnWidth, y: safeMinY + (safeMaxY - safeMinY) * 0.2 },
-                    { x: viewportWidth * 0.15, y: safeMinY + (safeMaxY - safeMinY) * 0.8 },
-                    { x: viewportWidth * 0.85 - btnWidth, y: safeMinY + (safeMaxY - safeMinY) * 0.8 },
-                    { x: viewportWidth * 0.5 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.15 },
-                    { x: viewportWidth * 0.5 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.75 },
-                    { x: viewportWidth * 0.3 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 },
-                    { x: viewportWidth * 0.7 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 }
-                ];
-
-                // Filter out zones too close to cursor AND too close to Yes button
-                const validZones = randomZones.filter(zone => {
-                    const zoneCenterX = zone.x + btnWidth / 2;
-                    const zoneCenterY = zone.y + btnHeight / 2;
-                    const distanceFromCursor = Math.hypot(cursorX - zoneCenterX, cursorY - zoneCenterY);
-                    const distanceFromYesBtn = Math.hypot((yesBtnX + yesBtnWidth / 2) - zoneCenterX, (yesBtnY + yesBtnHeight / 2) - zoneCenterY);
-                    return distanceFromCursor > reactionDistance * 1.5 && distanceFromYesBtn > minButtonDistance;
-                });
-
-                if (validZones.length > 0) {
-                    const randomZone = validZones[Math.floor(Math.random() * validZones.length)];
-                    // Add some randomness within the zone
-                    newX = randomZone.x + (Math.random() - 0.5) * 40;
-                    newY = randomZone.y + (Math.random() - 0.5) * 30;
-                } else {
-                    // Fallback to opposite corner, ensuring no overlap
-                    newX = cursorX < viewportWidth / 2 ? maxX - 50 : minX + 50;
-                    newY = cursorY < viewportHeight / 2 ? safeMaxY - 30 : safeMinY + 30;
-                }
-            } else {
-                // Directional movement (less aggressive)
-                let deltaX = btnX - cursorX;
-                let deltaY = btnY - cursorY;
-
-                // If too close, add some randomness
-                if (Math.hypot(deltaX, deltaY) < 50) {
-                    deltaX += (Math.random() - 0.5) * 100;
-                    deltaY += (Math.random() - 0.5) * 100;
-                }
-
-                // Normalize and apply gentler movement
-                const length = Math.hypot(deltaX, deltaY);
-                const dirX = deltaX / length;
-                const dirY = deltaY / length;
-
-                newX = btnX + dirX * moveDistance - (btnWidth / 2);
-                newY = btnY + dirY * moveDistance - (btnHeight / 2);
-            }
-
-            // Ensure button stays within boundaries
-            newX = Math.max(minX, Math.min(newX, maxX));
-            newY = Math.max(safeMinY, Math.min(newY, safeMaxY));
-
-        } while (checkOverlapWithYesBtn(newX, newY) && attempts < maxAttempts);
-
-        // If we couldn't find a non-overlapping position after max attempts,
-        // place it in a safe corner far from the Yes button
-        if (attempts >= maxAttempts) {
-            const corners = [
-                { x: minX, y: safeMinY },
-                { x: maxX, y: safeMinY },
-                { x: minX, y: safeMaxY },
-                { x: maxX, y: safeMaxY }
-            ];
-
-            // Find the corner furthest from the Yes button
-            let bestCorner = corners[0];
-            let maxDistance = 0;
-
-            corners.forEach(corner => {
-                const distance = Math.hypot((yesBtnX + yesBtnWidth / 2) - (corner.x + btnWidth / 2),
-                    (yesBtnY + yesBtnHeight / 2) - (corner.y + btnHeight / 2));
-                if (distance > maxDistance) {
-                    maxDistance = distance;
-                    bestCorner = corner;
-                }
-            });
-
-            newX = bestCorner.x;
-            newY = bestCorner.y;
-        }
-
-        // Final safety check - ensure button stays completely within viewport
-        newX = Math.max(0, Math.min(newX, viewportWidth - btnWidth));
-        newY = Math.max(0, Math.min(newY, viewportHeight - btnHeight));
-
-        // Apply position
         noBtn.style.left = `${newX}px`;
         noBtn.style.top = `${newY}px`;
-
-        // Gentle haptic feedback on mobile
-        if (isMobile && navigator.vibrate) {
-            navigator.vibrate(30); // Even shorter vibration
-        }
     }
 
     function growYesButton() {
         const currentScale = parseFloat(yesBtn.style.transform.replace('scale(', '').replace(')', '')) || 1;
-        const newScale = currentScale * 1.15;
-        yesBtn.style.transform = `scale(${newScale})`;
+        yesBtn.style.transform = `scale(${currentScale * 1.15})`;
     }
 
-    function showSuccess() {
-        // Make animal happy
-        catImg.src = animalImages[currentAnimal][4]; // Happy animal
-        catImg.classList.remove('shake');
+    // --- Success Logic ---
 
-        // Visuals for happy cat
+    yesBtn.addEventListener('click', () => {
+        // Happy State
+        catImg.src = animalImages[currentAnimal][4];
+        catImg.classList.remove('shake');
         catImg.style.transform = 'scale(1.1)';
 
-        // Hide card
+        // Hide main card
         mainCard.style.opacity = '0';
-        mainCard.style.transform = 'translateY(20px)';
         setTimeout(() => {
             mainCard.style.display = 'none';
-            // Show success message
             successMessage.classList.remove('hidden');
-            setTimeout(() => {
-                successMessage.classList.add('visible-success');
-            }, 50);
+            setTimeout(() => successMessage.classList.add('visible-success'), 50);
         }, 500);
 
-        // Hide floating no button if visible
         noBtn.style.display = 'none';
-
         startConfetti();
-    }
+    });
+
+    sendReplyBtn.addEventListener('click', () => {
+        const message = replyInput.value;
+        if (!message.trim()) {
+            alert('Please write a message!');
+            return;
+        }
+
+        // Simulate sending
+        console.log(`Sending reply to creator: "${message}"`);
+
+        sendReplyBtn.textContent = 'Sent! ❤️';
+        sendReplyBtn.disabled = true;
+        replyInput.disabled = true;
+
+        alert('Message sent! (Mock functionality)');
+    });
 
     function startConfetti() {
-        const duration = 5000; // 5 seconds of hearts
+        const duration = 5000;
         const interval = setInterval(() => {
             const heart = document.createElement('div');
-            heart.classList.add('heart-shape'); // CSS shape class
+            heart.classList.add('heart-shape');
             heart.style.left = Math.random() * 100 + 'vw';
             heart.style.animationDuration = Math.random() * 2 + 3 + 's';
-            // Random sizes
             const size = Math.random() * 20 + 20;
             heart.style.width = `${size}px`;
             heart.style.height = `${size}px`;
-
-            // Random colors (reds/pinks)
             const colors = ['#ff4d6d', '#c9184a', '#ff758f', '#ff8fa3'];
             heart.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-
             heartsContainer.appendChild(heart);
-
-            // Clean up
-            setTimeout(() => {
-                heart.remove();
-            }, 5000);
+            setTimeout(() => heart.remove(), 5000);
         }, 100);
-
-        // Stop creating after some time
-        setTimeout(() => {
-            clearInterval(interval);
-        }, duration * 2);
+        setTimeout(() => clearInterval(interval), duration * 2);
     }
+
+    // Initialize
+    init();
+
 });
