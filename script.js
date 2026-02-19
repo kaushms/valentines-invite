@@ -313,22 +313,45 @@ document.addEventListener('DOMContentLoaded', () => {
         startConfetti();
     });
 
-    sendReplyBtn.addEventListener('click', () => {
+    sendReplyBtn.addEventListener('click', async () => {
         const message = replyInput.value;
-        if (!message.trim()) {
-            alert('Please write a message!');
-            return;
+        const shareText = `I said YES! ❤️\n${message ? `"${message}"` : ''}\n`;
+        const shareUrl = window.location.href;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'She said YES!',
+                    text: shareText,
+                    url: shareUrl
+                });
+                sendReplyBtn.textContent = 'Shared! ❤️';
+            } catch (err) {
+                // Determine if this was a user cancellation or an actual error
+                if (err.name !== 'AbortError') {
+                    console.error('Error sharing:', err);
+                    copyToClipboard(`${shareText} ${shareUrl}`);
+                }
+            }
+        } else {
+            // Desktop fallback
+            copyToClipboard(`${shareText} ${shareUrl}`);
         }
-
-        // Simulate sending
-        console.log(`Sending reply to creator: "${message}"`);
-
-        sendReplyBtn.textContent = 'Sent! ❤️';
-        sendReplyBtn.disabled = true;
-        replyInput.disabled = true;
-
-        alert('Message sent! (Mock functionality)');
     });
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = sendReplyBtn.textContent;
+            sendReplyBtn.textContent = 'Copied! Paste it to your Valentine 📋';
+            setTimeout(() => {
+                sendReplyBtn.textContent = originalText;
+            }, 3000);
+            alert('Message copied to clipboard! You can now paste it in WhatsApp, iMessage, etc.');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            prompt('Copy this message to send to your Valentine:', text);
+        });
+    }
 
     function startConfetti() {
         const duration = 5000;
