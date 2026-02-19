@@ -68,6 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Valid animals
+    const premiumAnimals = ['panda', 'orca'];
+
     // --- Initialization ---
 
     function init() {
@@ -76,23 +79,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const nameParam = urlParams.get('name');
         const animalParam = urlParams.get('animal');
 
+        // IF RECIPIENT MODE (name is present):
+        // Allow using premium animals without unlocking (Recipients just view)
         if (nameParam) {
             recipientName = nameParam;
-            recipientNameInput.value = recipientName; // Update input in case modal is opened later
-            // Hide settings button if URL has params (assuming it's a shared link)
-            openSettingsBtn.classList.add('hidden');
+            recipientNameInput.value = recipientName;
+
+            if (animalParam && animalImages[animalParam]) {
+                currentAnimal = animalParam;
+                // Don't show lock UI in Recipient mode
+            }
+            openSettingsBtn.classList.add('hidden'); // Hide settings button if URL has params
         } else {
-            // If no name, assume Creator Mode -> Show Settings
+            // CREATOR MODE:
+            // Check Lock Status
+            checkPremiumStatus();
+
+            // Show Settings first
             settingsModal.classList.remove('hidden');
         }
 
-        if (animalParam && animalImages[animalParam]) {
-            currentAnimal = animalParam;
-            updateCharBtnActiveState(currentAnimal);
-        }
-
         updateUI();
-        updateAnimalImage(); // Ensure correct animal image is displayed initially
+    }
+
+    // Check if user has unlocked premium
+    function checkPremiumStatus() {
+        const isPremium = localStorage.getItem('isPremium') === 'true';
+
+        charBtns.forEach(btn => {
+            const animal = btn.dataset.animal;
+            if (premiumAnimals.includes(animal)) {
+                if (isPremium) {
+                    btn.classList.remove('locked');
+                    const lockIcon = btn.querySelector('.lock-icon');
+                    if (lockIcon) lockIcon.style.display = 'none';
+                } else {
+                    btn.classList.add('locked');
+                    const lockIcon = btn.querySelector('.lock-icon');
+                    if (lockIcon) lockIcon.style.display = 'block'; // Ensure lock icon is visible
+                }
+            }
+        });
     }
 
     function updateUI() {
@@ -100,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mainTitle.textContent = `Will you be my Valentine, ${recipientName}?`;
 
         // Update Image
-        // updateAnimalImage(); // This is now called in init and on animal change
+        updateAnimalImage();
 
         // Update background based on animal (optional subtle change)
         updateThemeColors();
@@ -146,7 +173,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Settings / Creator Logic ---
 
+    // Elements
+    const premiumModal = document.getElementById('premium-modal');
+    const closePremiumBtn = document.getElementById('close-premium-btn');
+    const unlockBtn = document.getElementById('unlock-btn');
+
     openSettingsBtn.addEventListener('click', () => {
+        checkPremiumStatus(); // Re-check in case
         settingsModal.classList.remove('hidden');
         // Ensure settings reflect current state when opened
         recipientNameInput.value = recipientName;
@@ -167,12 +200,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Premium Modal Logic
+    closePremiumBtn.addEventListener('click', () => {
+        premiumModal.classList.add('hidden');
+    });
+
+    unlockBtn.addEventListener('click', () => {
+        // SIMULATE PAYMENT
+        unlockBtn.textContent = 'Processing... 💳';
+
+        setTimeout(() => {
+            localStorage.setItem('isPremium', 'true');
+            checkPremiumStatus(); // Updates UI to remove locks
+            premiumModal.classList.add('hidden');
+            alert('Payment Successful! Premium Features Unlocked! 💎');
+
+            // Auto-select the last clicked premium animal? Or just let them click it again.
+        }, 1500);
+    });
+
     charBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            currentAnimal = btn.dataset.animal;
+            const animal = btn.dataset.animal;
+            const isLocked = btn.classList.contains('locked');
+
+            if (isLocked) {
+                // Show Upsell
+                premiumModal.classList.remove('hidden');
+                return;
+            }
+
+            currentAnimal = animal;
             updateCharBtnActiveState(currentAnimal);
-            angerLevel = 0; // Reset anger when animal changes
-            updateAnimalImage(); // Update image immediately in settings modal
+            angerLevel = 0;
+            updateUI();
         });
     });
 

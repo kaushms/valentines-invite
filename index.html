@@ -34,12 +34,31 @@
                 <div class="character-grid">
                     <button class="char-btn active" data-animal="cat">🐱 Cat</button>
                     <button class="char-btn" data-animal="dog">🐶 Dog</button>
-                    <button class="char-btn" data-animal="panda">🐼 Panda</button>
-                    <button class="char-btn" data-animal="orca">🐳 Orca</button>
+                    <button class="char-btn locked" data-animal="panda">🐼 Panda <span
+                            class="lock-icon">🔒</span></button>
+                    <button class="char-btn locked" data-animal="orca">🐳 Orca <span
+                            class="lock-icon">🔒</span></button>
                 </div>
             </div>
             <button id="generate-link-btn" class="btn btn-yes">Copy Link</button>
             <button id="close-settings-btn" class="close-btn">×</button>
+        </div>
+    </div>
+
+    <!-- Premium Modal -->
+    <div id="premium-modal" class="modal hidden" style="z-index: 200;">
+        <div class="glass-card settings-card premium-card">
+            <h2 class="premium-title">Unlock Premium! 💎</h2>
+            <p class="premium-text">Get access to 🐼 Panda, 🐳 Orca, and all future characters!</p>
+            <div class="premium-features">
+                <p>✨ Unlimited Proposals</p>
+                <p>✨ Exclusive Animations</p>
+                <p>✨ Support the Developer</p>
+            </div>
+            <button id="unlock-btn" class="btn btn-yes shimmer-btn">Unlock Now ($2.99)</button>
+            <button id="close-premium-btn" class="close-btn">×</button>
+            <p class="small-text" style="margin-top: 10px; font-size: 0.8rem; opacity: 0.7;">One-time payment. Forever
+                yours.</p>
         </div>
     </div>
 
