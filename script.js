@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentAnimal = 'cat';
     let recipientName = 'Valentine';
 
+    // Valid animals
+    const premiumAnimals = ['panda', 'orca', 'penguin', 'owl'];
+
     // Asset Map
     const animalImages = {
         cat: [
@@ -57,6 +60,21 @@ document.addEventListener('DOMContentLoaded', () => {
             'assets/orca_2_angry.png',
             'assets/orca_3_furious.png',
             'assets/orca_happy.png'
+        ],
+        // PLACEHOLDERS (Using Panda for now)
+        penguin: [
+            'assets/panda_0_neutral.png',
+            'assets/panda_1_annoyed.png',
+            'assets/panda_2_angry.png',
+            'assets/panda_3_furious.png',
+            'assets/panda_happy.png'
+        ],
+        owl: [
+            'assets/panda_0_neutral.png',
+            'assets/panda_1_annoyed.png',
+            'assets/panda_2_angry.png',
+            'assets/panda_3_furious.png',
+            'assets/panda_happy.png'
         ]
     };
 
@@ -67,9 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
             img.src = src;
         });
     });
-
-    // Valid animals
-    const premiumAnimals = ['panda', 'orca'];
 
     // --- Initialization ---
 
@@ -139,6 +154,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reset transforms
         catImg.style.transform = 'none';
+
+        if (angerLevel === 3) {
+            document.body.style.backgroundColor = '#ffe0e6'; // Default angry bg
+            if (currentAnimal === 'dog') document.body.style.backgroundColor = '#e6f2ff';
+            if (currentAnimal === 'panda') document.body.style.backgroundColor = '#e8f5e9'; // Light green ish
+            if (currentAnimal === 'orca') document.body.style.backgroundColor = '#e0f7fa'; // Light cyan
+            if (currentAnimal === 'penguin') document.body.style.backgroundColor = '#e3f2fd'; // Ice Blue
+            if (currentAnimal === 'owl') document.body.style.backgroundColor = '#e8eaf6'; // Nightish Blue
+        } else {
+            document.body.style.backgroundColor = '#fff0f3'; // Reset to default pink
+        }
     }
 
     function updateThemeColors() {
@@ -153,6 +179,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     newBgColor = '#e8f5e9'; break; // Light green
                 case 'orca':
                     newBgColor = '#e0f7fa'; break; // Light cyan
+                case 'penguin':
+                    newBgColor = '#e3f2fd'; break; // Ice Blue
+                case 'owl':
+                    newBgColor = '#e8eaf6'; break; // Nightish Blue
             }
         } else {
             newBgColor = '#fff0f3'; // Reset to default pink
