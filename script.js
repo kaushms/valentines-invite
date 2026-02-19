@@ -78,7 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (nameParam) {
             recipientName = nameParam;
-            recipientNameInput.value = recipientName;
+            recipientNameInput.value = recipientName; // Update input in case modal is opened later
+            // Hide settings button if URL has params (assuming it's a shared link)
+            openSettingsBtn.classList.add('hidden');
         } else {
             // If no name, assume Creator Mode -> Show Settings
             settingsModal.classList.remove('hidden');
@@ -109,19 +111,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reset transforms
         catImg.style.transform = 'none';
-
-        if (angerLevel === 3) {
-            document.body.style.backgroundColor = '#ffe0e6'; // Default angry bg
-            if (currentAnimal === 'dog') document.body.style.backgroundColor = '#e6f2ff';
-            if (currentAnimal === 'panda') document.body.style.backgroundColor = '#e8f5e9'; // Light green ish
-            if (currentAnimal === 'orca') document.body.style.backgroundColor = '#e0f7fa'; // Light cyan
-        } else {
-            document.body.style.backgroundColor = '#fff0f3'; // Reset to default pink
-        }
     }
 
     function updateThemeColors() {
-        // Could be expanded to change primary colors based on animal
+        let newBgColor = '#fff0f3'; // Default pink
+        if (angerLevel === 3) {
+            switch (currentAnimal) {
+                case 'cat':
+                    newBgColor = '#ffe0e6'; break; // Light pink
+                case 'dog':
+                    newBgColor = '#e6f2ff'; break; // Light blue
+                case 'panda':
+                    newBgColor = '#e8f5e9'; break; // Light green
+                case 'orca':
+                    newBgColor = '#e0f7fa'; break; // Light cyan
+            }
+        } else {
+            newBgColor = '#fff0f3'; // Reset to default pink
+        }
+        document.body.style.backgroundColor = newBgColor;
+        // Potentially update other CSS variables here for more comprehensive theming
     }
 
     function updateCharBtnActiveState(animal) {
@@ -138,16 +147,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     openSettingsBtn.addEventListener('click', () => {
         settingsModal.classList.remove('hidden');
+        // Ensure settings reflect current state when opened
+        recipientNameInput.value = recipientName;
+        updateCharBtnActiveState(currentAnimal);
     });
 
     closeSettingsBtn.addEventListener('click', () => {
         settingsModal.classList.add('hidden');
+        // Update main UI in case changes were made and not saved via link generation
+        updateUI();
     });
 
-    // Close on click outside card
+    // Close on click outside modal content
     settingsModal.addEventListener('click', (e) => {
         if (e.target === settingsModal) {
             settingsModal.classList.add('hidden');
+            updateUI();
         }
     });
 
@@ -155,14 +170,14 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             currentAnimal = btn.dataset.animal;
             updateCharBtnActiveState(currentAnimal);
-            angerLevel = 0;
-            updateUI();
+            angerLevel = 0; // Reset anger when animal changes
+            updateAnimalImage(); // Update image immediately in settings modal
         });
     });
 
     recipientNameInput.addEventListener('input', (e) => {
-        recipientName = e.target.value || 'Valentine';
-        updateUI();
+        recipientName = e.target.value || 'Valentine'; // Default to 'Valentine' if empty
+        // No need to call updateUI here, as it's called on modal close or link generation
     });
 
     generateLinkBtn.addEventListener('click', () => {
@@ -179,11 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
             generateLinkBtn.textContent = 'Link Copied! 📋';
             setTimeout(() => {
                 generateLinkBtn.textContent = originalText;
-                settingsModal.classList.add('hidden');
+                settingsModal.classList.add('hidden'); // Close modal after copying
             }, 1500);
         }).catch(err => {
             console.error('Failed to copy: ', err);
-            prompt('Copy this link:', shareUrl);
+            // Fallback for older browsers or if clipboard access is denied
+            prompt('Copy this link manually:', shareUrl);
         });
     });
 
@@ -203,19 +219,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('touchmove', (e) => {
         if (e.touches.length > 0) {
             handleProximity(e.touches[0].clientX, e.touches[0].clientY);
-            if (e.target === noBtn) e.preventDefault();
+            if (e.target === noBtn) e.preventDefault(); // Prevent scrolling
         }
     }, { passive: false });
 
     document.addEventListener('touchstart', (e) => {
         if (e.touches.length > 0) {
             handleProximity(e.touches[0].clientX, e.touches[0].clientY);
-            if (e.target === noBtn) e.preventDefault();
+            if (e.target === noBtn) e.preventDefault(); // Prevent iOS zoom/scroll issues
         }
     }, { passive: false });
 
 
-    const reactionDistance = isMobile ? 80 : 100;
+    const reactionDistance = isMobile ? 80 : 100; // Closer trigger for easier interaction
+    const moveDistance = isMobile ? 80 : 100; // Less aggressive movement, still playful
 
     function handleProximity(x, y) {
         if (noBtn.style.display === 'none') return;
@@ -264,33 +281,182 @@ document.addEventListener('DOMContentLoaded', () => {
             noBtn.style.zIndex = '100';
         }
 
+        // Mobile-optimized animations - smoother and less bouncy
+        const transitionDuration = isMobile ? '0.6s' : '0.7s';
+        const easingFunction = 'cubic-bezier(0.25, 0.8, 0.25, 1)'; // Smooth easing for both
+
+        noBtn.style.transition = `left ${transitionDuration} ${easingFunction}, top ${transitionDuration} ${easingFunction}, transform 0.15s ease`;
+
+        // Subtle pop effect
+        const popScale = '1.05';
+        noBtn.style.transform = `scale(${popScale})`;
+        setTimeout(() => {
+            noBtn.style.transform = 'scale(1)';
+        }, 100);
+
+        // Get viewport dimensions
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         const btnRect = noBtn.getBoundingClientRect();
         const btnWidth = btnRect.width;
         const btnHeight = btnRect.height;
 
-        // Boundaries
-        const margin = 20;
+        // Safe boundaries - ensure button stays fully visible
+        const margin = isMobile ? 20 : 15;
         const minX = margin;
         const maxX = viewportWidth - btnWidth - margin;
         const minY = margin;
         const maxY = viewportHeight - btnHeight - margin;
 
-        // Random pos
-        let newX = Math.random() * (maxX - minX) + minX;
-        let newY = Math.random() * (maxY - minY) + minY;
+        // Account for iOS Safari UI and ensure button is always visible
+        let safeMinY = minY;
+        let safeMaxY = maxY;
+        if (isMobile) {
+            // More conservative boundaries for mobile to account for browser UI
+            safeMinY = Math.max(margin, viewportHeight * 0.1);
+            safeMaxY = Math.min(maxY, viewportHeight * 0.8);
+        } else {
+            // Desktop - ensure we don't go too close to edges
+            safeMaxY = Math.min(maxY, viewportHeight - btnHeight - 40);
+        }
 
-        // Simple logic: just move it anywhere valid for now to keep it brisk
-        // (Simplified from previous version to reduce code bloat, but still effective)
+        // Debug: ensure boundaries are valid
+        if (safeMaxY <= safeMinY) {
+            safeMaxY = viewportHeight - btnHeight - 20;
+            safeMinY = 20;
+        }
 
+        // Get Yes button position to avoid overlap
+        const yesBtnRect = yesBtn.getBoundingClientRect();
+        const yesBtnX = yesBtnRect.left;
+        const yesBtnY = yesBtnRect.top;
+        const yesBtnWidth = yesBtnRect.width;
+        const yesBtnHeight = yesBtnRect.height;
+
+        // Minimum distance between buttons to prevent overlap
+        const minButtonDistance = Math.max(yesBtnWidth, yesBtnHeight) + (isMobile ? 60 : 40);
+
+        function checkOverlapWithYesBtn(x, y) {
+            const centerX = x + btnWidth / 2;
+            const centerY = y + btnHeight / 2;
+            const yesCenterX = yesBtnX + yesBtnWidth / 2;
+            const yesCenterY = yesBtnY + yesBtnHeight / 2;
+            const distance = Math.hypot(centerX - yesCenterX, centerY - yesCenterY);
+            return distance < minButtonDistance;
+        }
+
+        // Add randomness to movement - mix of directional and random
+        let newX, newY;
+        let attempts = 0;
+        const maxAttempts = 20;
+
+        do {
+            attempts++;
+
+            // 60% chance for semi-random movement, 40% for directional
+            if (Math.random() > 0.4) {
+                // Random positioning with some bias away from cursor
+                const randomZones = [
+                    { x: viewportWidth * 0.15, y: safeMinY + (safeMaxY - safeMinY) * 0.2 },
+                    { x: viewportWidth * 0.85 - btnWidth, y: safeMinY + (safeMaxY - safeMinY) * 0.2 },
+                    { x: viewportWidth * 0.15, y: safeMinY + (safeMaxY - safeMinY) * 0.8 },
+                    { x: viewportWidth * 0.85 - btnWidth, y: safeMinY + (safeMaxY - safeMinY) * 0.8 },
+                    { x: viewportWidth * 0.5 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.15 },
+                    { x: viewportWidth * 0.5 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.75 },
+                    { x: viewportWidth * 0.3 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 },
+                    { x: viewportWidth * 0.7 - btnWidth / 2, y: safeMinY + (safeMaxY - safeMinY) * 0.5 }
+                ];
+
+                // Filter out zones too close to cursor AND too close to Yes button
+                const validZones = randomZones.filter(zone => {
+                    const zoneCenterX = zone.x + btnWidth / 2;
+                    const zoneCenterY = zone.y + btnHeight / 2;
+                    const distanceFromCursor = Math.hypot(cursorX - zoneCenterX, cursorY - zoneCenterY);
+                    const distanceFromYesBtn = Math.hypot((yesBtnX + yesBtnWidth / 2) - zoneCenterX, (yesBtnY + yesBtnHeight / 2) - zoneCenterY);
+                    return distanceFromCursor > reactionDistance * 1.5 && distanceFromYesBtn > minButtonDistance;
+                });
+
+                if (validZones.length > 0) {
+                    const randomZone = validZones[Math.floor(Math.random() * validZones.length)];
+                    // Add some randomness within the zone
+                    newX = randomZone.x + (Math.random() - 0.5) * 40;
+                    newY = randomZone.y + (Math.random() - 0.5) * 30;
+                } else {
+                    // Fallback to opposite corner, ensuring no overlap
+                    newX = cursorX < viewportWidth / 2 ? maxX - 50 : minX + 50;
+                    newY = cursorY < viewportHeight / 2 ? safeMaxY - 30 : safeMinY + 30;
+                }
+            } else {
+                // Directional movement (less aggressive)
+                let deltaX = btnX - cursorX;
+                let deltaY = btnY - cursorY;
+
+                // If too close, add some randomness
+                if (Math.hypot(deltaX, deltaY) < 50) {
+                    deltaX += (Math.random() - 0.5) * 100;
+                    deltaY += (Math.random() - 0.5) * 100;
+                }
+
+                // Normalize and apply gentler movement
+                const length = Math.hypot(deltaX, deltaY);
+                const dirX = deltaX / length;
+                const dirY = dirY / length;
+
+                newX = btnX + dirX * moveDistance - (btnWidth / 2);
+                newY = btnY + dirY * moveDistance - (btnHeight / 2);
+            }
+
+            // Ensure button stays within boundaries
+            newX = Math.max(minX, Math.min(newX, maxX));
+            newY = Math.max(safeMinY, Math.min(newY, safeMaxY));
+
+        } while (checkOverlapWithYesBtn(newX, newY) && attempts < maxAttempts);
+
+        // If we couldn't find a non-overlapping position after max attempts,
+        // place it in a safe corner far from the Yes button
+        if (attempts >= maxAttempts) {
+            const corners = [
+                { x: minX, y: safeMinY },
+                { x: maxX, y: safeMinY },
+                { x: minX, y: safeMaxY },
+                { x: maxX, y: safeMaxY }
+            ];
+
+            // Find the corner furthest from the Yes button
+            let bestCorner = corners[0];
+            let maxDistance = 0;
+
+            corners.forEach(corner => {
+                const distance = Math.hypot((yesBtnX + yesBtnWidth / 2) - (corner.x + btnWidth / 2),
+                    (yesBtnY + yesBtnHeight / 2) - (corner.y + btnHeight / 2));
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                    bestCorner = corner;
+                }
+            });
+
+            newX = bestCorner.x;
+            newY = bestCorner.y;
+        }
+
+        // Final safety check - ensure button stays completely within viewport
+        newX = Math.max(0, Math.min(newX, viewportWidth - btnWidth));
+        newY = Math.max(0, Math.min(newY, viewportHeight - btnHeight));
+
+        // Apply position
         noBtn.style.left = `${newX}px`;
         noBtn.style.top = `${newY}px`;
+
+        // Gentle haptic feedback on mobile
+        if (isMobile && navigator.vibrate) {
+            navigator.vibrate(30); // Even shorter vibration
+        }
     }
 
     function growYesButton() {
         const currentScale = parseFloat(yesBtn.style.transform.replace('scale(', '').replace(')', '')) || 1;
-        yesBtn.style.transform = `scale(${currentScale * 1.15})`;
+        const newScale = currentScale * 1.15;
+        yesBtn.style.transform = `scale(${newScale})`;
     }
 
     // --- Success Logic ---
