@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         updateUI();
+        updateAnimalImage(); // Ensure correct animal image is displayed initially
     }
 
     function updateUI() {
@@ -99,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mainTitle.textContent = `Will you be my Valentine, ${recipientName}?`;
 
         // Update Image
-        updateAnimalImage();
+        // updateAnimalImage(); // This is now called in init and on animal change
 
         // Update background based on animal (optional subtle change)
         updateThemeColors();
@@ -481,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     sendReplyBtn.addEventListener('click', async () => {
         const message = replyInput.value;
-        const shareText = `I said YES! ❤️\n${message ? `"${message}"` : ''}\n`;
+        const shareText = `Hey ${recipientName}, I said YES! ❤️\n${message ? `"${message}"` : ''}\n`;
         const shareUrl = window.location.href;
 
         if (navigator.share) {
