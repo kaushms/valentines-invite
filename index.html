@@ -21,15 +21,58 @@
         </div>
     </div>
 
-    <div class="animal-toggle" id="animal-toggle">
-        <button class="toggle-option" id="cat-option">Cat</button>
-        <button class="toggle-option" id="dog-option">Dog</button>
+    <!-- Creator/Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="glass-card settings-card">
+            <h2>Create Your Proposal</h2>
+            <div class="input-group">
+                <label>Valentine's Name</label>
+                <input type="text" id="recipient-name" placeholder="Enter name">
+            </div>
+            <div class="input-group">
+                <label>Choose Character</label>
+                <div class="character-grid">
+                    <button class="char-btn active" data-animal="cat">🐱 Cat</button>
+                    <button class="char-btn" data-animal="dog">🐶 Dog</button>
+                    <button class="char-btn locked" data-animal="panda">🐼 Panda <span
+                            class="lock-icon">🔒</span></button>
+                    <button class="char-btn locked" data-animal="orca">🐳 Orca <span
+                            class="lock-icon">🔒</span></button>
+                    <button class="char-btn locked" data-animal="penguin">🐧 Penguin <span
+                            class="lock-icon">🔒</span></button>
+                    <button class="char-btn locked" data-animal="owl">🦉 Owl <span class="lock-icon">🔒</span></button>
+                </div>
+            </div>
+            <button id="generate-link-btn" class="btn btn-yes">Copy Link</button>
+            <button id="close-settings-btn" class="close-btn">×</button>
+        </div>
     </div>
 
+    <!-- Premium Modal -->
+    <div id="premium-modal" class="modal hidden" style="z-index: 200;">
+        <div class="glass-card settings-card premium-card">
+            <h2 class="premium-title">Unlock Premium! 💎</h2>
+            <p class="premium-text">Get access to 🐼 Panda, 🐳 Orca, and all future characters!</p>
+            <div class="premium-features">
+                <p>✨ Unlimited Proposals</p>
+                <p>✨ Exclusive Animations</p>
+                <p>✨ Support the Developer</p>
+            </div>
+            <button id="unlock-btn" class="btn btn-yes shimmer-btn">Unlock Now ($2.99)</button>
+            <button id="close-premium-btn" class="close-btn">×</button>
+            <p class="small-text" style="margin-top: 10px; font-size: 0.8rem; opacity: 0.7;">One-time payment. Forever
+                yours.</p>
+        </div>
+    </div>
+
+    <!-- Button to open settings -->
+    <button id="open-settings-btn" class="icon-btn">⚙️</button>
+
     <main class="content-wrapper">
+
+
         <div class="glass-card" id="main-card">
-            <h1 class="title">Will you be my Valentine, Moni ?</h1>
-            <div class="message">Which do you prefer?</div>
+            <h1 class="title"></h1>
             <div class="buttons-container">
                 <button id="yes-btn" class="btn btn-yes">Yes!</button>
                 <button id="no-btn" class="btn btn-no">No</button>
@@ -38,6 +81,10 @@
 
         <div id="success-message" class="hidden">
             <h1 class="success-text">Yayyy!</h1>
+            <div class="reply-container">
+                <textarea id="reply-input" placeholder="Write your reply... (e.g. Can't wait!)"></textarea>
+                <button id="send-reply-btn" class="btn btn-yes">Share My Answer! 💌</button>
+            </div>
         </div>
     </main>
 

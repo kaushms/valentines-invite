@@ -1,18 +1,37 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
     const noBtn = document.getElementById('no-btn');
     const yesBtn = document.getElementById('yes-btn');
     const catImg = document.getElementById('cat-img');
     const mainCard = document.getElementById('main-card');
     const successMessage = document.getElementById('success-message');
     const heartsContainer = document.getElementById('hearts-container');
-    const animalToggle = document.getElementById('animal-toggle');
-    const catOption = document.getElementById('cat-option');
-    const dogOption = document.getElementById('dog-option');
+    const mainTitle = document.getElementById('main-title');
 
+    // Settings / Creator Elements
+    const settingsModal = document.getElementById('settings-modal');
+    const openSettingsBtn = document.getElementById('open-settings-btn');
+    const closeSettingsBtn = document.getElementById('close-settings-btn');
+    const generateLinkBtn = document.getElementById('generate-link-btn');
+    const recipientNameInput = document.getElementById('recipient-name');
+    const charBtns = document.querySelectorAll('.char-btn');
+
+    // Reply Elements
+    const replyInput = document.getElementById('reply-input');
+    const sendReplyBtn = document.getElementById('send-reply-btn');
+
+    // State
     let angerLevel = 0;
     const maxAnger = 3;
 
-    // Cat image paths
+    // Default config
+    let currentAnimal = 'cat';
+    let recipientName = 'Valentine';
+
+    // Valid animals
+    const premiumAnimals = ['panda', 'orca', 'penguin', 'owl'];
+
+    // Asset Map
     const animalImages = {
         cat: [
             'assets/cat_0_neutral.png',
@@ -27,13 +46,39 @@ document.addEventListener('DOMContentLoaded', () => {
             'assets/dog_2_angry.png',
             'assets/dog_3_furious.png',
             'assets/dog_happy.png'
+        ],
+        panda: [
+            'assets/panda_0_neutral.png',
+            'assets/panda_1_annoyed.png',
+            'assets/panda_2_angry.png',
+            'assets/panda_3_furious.png',
+            'assets/panda_happy.png'
+        ],
+        orca: [
+            'assets/orca_0_neutral.png',
+            'assets/orca_1_annoyed.png',
+            'assets/orca_2_angry.png',
+            'assets/orca_3_furious.png',
+            'assets/orca_happy.png'
+        ],
+        // PLACEHOLDERS (Using Panda for now)
+        penguin: [
+            'assets/panda_0_neutral.png',
+            'assets/panda_1_annoyed.png',
+            'assets/panda_2_angry.png',
+            'assets/panda_3_furious.png',
+            'assets/panda_happy.png'
+        ],
+        owl: [
+            'assets/panda_0_neutral.png',
+            'assets/panda_1_annoyed.png',
+            'assets/panda_2_angry.png',
+            'assets/panda_3_furious.png',
+            'assets/panda_happy.png'
         ]
     };
 
-    let currentAnimal = 'cat'; // Default animal
-
-    // Preload images
-    // Preload images for both cat and dog
+    // Preload all images
     Object.values(animalImages).forEach(imagesArray => {
         imagesArray.forEach(src => {
             const img = new Image();
@@ -41,61 +86,243 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    catOption.addEventListener('click', () => {
-        currentAnimal = 'cat';
-        animalToggle.classList.add('cat-active');
-        animalToggle.classList.remove('dog-active');
-        angerLevel = 0;
-        updateAnimal();
+    // --- Initialization ---
+
+    function init() {
+        // Parse URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const nameParam = urlParams.get('name');
+        const animalParam = urlParams.get('animal');
+
+        // IF RECIPIENT MODE (name is present):
+        // Allow using premium animals without unlocking (Recipients just view)
+        if (nameParam) {
+            recipientName = nameParam;
+            recipientNameInput.value = recipientName;
+
+            if (animalParam && animalImages[animalParam]) {
+                currentAnimal = animalParam;
+                // Don't show lock UI in Recipient mode
+            }
+            openSettingsBtn.classList.add('hidden'); // Hide settings button if URL has params
+        } else {
+            // CREATOR MODE:
+            // Check Lock Status
+            checkPremiumStatus();
+
+            // Show Settings first
+            settingsModal.classList.remove('hidden');
+        }
+
+        updateUI();
+    }
+
+    // Check if user has unlocked premium
+    function checkPremiumStatus() {
+        const isPremium = localStorage.getItem('isPremium') === 'true';
+
+        charBtns.forEach(btn => {
+            const animal = btn.dataset.animal;
+            if (premiumAnimals.includes(animal)) {
+                if (isPremium) {
+                    btn.classList.remove('locked');
+                    const lockIcon = btn.querySelector('.lock-icon');
+                    if (lockIcon) lockIcon.style.display = 'none';
+                } else {
+                    btn.classList.add('locked');
+                    const lockIcon = btn.querySelector('.lock-icon');
+                    if (lockIcon) lockIcon.style.display = 'block'; // Ensure lock icon is visible
+                }
+            }
+        });
+    }
+
+    function updateUI() {
+        // Update Title
+        mainTitle.textContent = `Will you be my Valentine, ${recipientName}?`;
+
+        // Update Image
+        updateAnimalImage();
+
+        // Update background based on animal (optional subtle change)
+        updateThemeColors();
+    }
+
+    function updateAnimalImage() {
+        catImg.src = animalImages[currentAnimal][angerLevel];
+        catImg.alt = `Cute ${currentAnimal} looking ${['neutral', 'annoyed', 'angry', 'furious', 'happy'][angerLevel]}`;
+
+        // Reset transforms
+        catImg.style.transform = 'none';
+
+        if (angerLevel === 3) {
+            document.body.style.backgroundColor = '#ffe0e6'; // Default angry bg
+            if (currentAnimal === 'dog') document.body.style.backgroundColor = '#e6f2ff';
+            if (currentAnimal === 'panda') document.body.style.backgroundColor = '#e8f5e9'; // Light green ish
+            if (currentAnimal === 'orca') document.body.style.backgroundColor = '#e0f7fa'; // Light cyan
+            if (currentAnimal === 'penguin') document.body.style.backgroundColor = '#e3f2fd'; // Ice Blue
+            if (currentAnimal === 'owl') document.body.style.backgroundColor = '#e8eaf6'; // Nightish Blue
+        } else {
+            document.body.style.backgroundColor = '#fff0f3'; // Reset to default pink
+        }
+    }
+
+    function updateThemeColors() {
+        let newBgColor = '#fff0f3'; // Default pink
+        if (angerLevel === 3) {
+            switch (currentAnimal) {
+                case 'cat':
+                    newBgColor = '#ffe0e6'; break; // Light pink
+                case 'dog':
+                    newBgColor = '#e6f2ff'; break; // Light blue
+                case 'panda':
+                    newBgColor = '#e8f5e9'; break; // Light green
+                case 'orca':
+                    newBgColor = '#e0f7fa'; break; // Light cyan
+                case 'penguin':
+                    newBgColor = '#e3f2fd'; break; // Ice Blue
+                case 'owl':
+                    newBgColor = '#e8eaf6'; break; // Nightish Blue
+            }
+        } else {
+            newBgColor = '#fff0f3'; // Reset to default pink
+        }
+        document.body.style.backgroundColor = newBgColor;
+        // Potentially update other CSS variables here for more comprehensive theming
+    }
+
+    function updateCharBtnActiveState(animal) {
+        charBtns.forEach(btn => {
+            if (btn.dataset.animal === animal) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    // --- Settings / Creator Logic ---
+
+    // Elements
+    const premiumModal = document.getElementById('premium-modal');
+    const closePremiumBtn = document.getElementById('close-premium-btn');
+    const unlockBtn = document.getElementById('unlock-btn');
+
+    openSettingsBtn.addEventListener('click', () => {
+        checkPremiumStatus(); // Re-check in case
+        settingsModal.classList.remove('hidden');
+        // Ensure settings reflect current state when opened
+        recipientNameInput.value = recipientName;
+        updateCharBtnActiveState(currentAnimal);
     });
 
-    dogOption.addEventListener('click', () => {
-        currentAnimal = 'dog';
-        animalToggle.classList.add('dog-active');
-        animalToggle.classList.remove('cat-active');
-        angerLevel = 0;
-        updateAnimal();
+    closeSettingsBtn.addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
+        // Update main UI in case changes were made and not saved via link generation
+        updateUI();
     });
 
-    // Initialize toggle visual state
-    animalToggle.classList.add(`${currentAnimal}-active`);
+    // Close on click outside modal content
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+            settingsModal.classList.add('hidden');
+            updateUI();
+        }
+    });
+
+    // Premium Modal Logic
+    closePremiumBtn.addEventListener('click', () => {
+        premiumModal.classList.add('hidden');
+    });
+
+    unlockBtn.addEventListener('click', () => {
+        // SIMULATE PAYMENT
+        unlockBtn.textContent = 'Processing... 💳';
+
+        setTimeout(() => {
+            localStorage.setItem('isPremium', 'true');
+            checkPremiumStatus(); // Updates UI to remove locks
+            premiumModal.classList.add('hidden');
+            alert('Payment Successful! Premium Features Unlocked! 💎');
+
+            // Auto-select the last clicked premium animal? Or just let them click it again.
+        }, 1500);
+    });
+
+    charBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const animal = btn.dataset.animal;
+            const isLocked = btn.classList.contains('locked');
+
+            if (isLocked) {
+                // Show Upsell
+                premiumModal.classList.remove('hidden');
+                return;
+            }
+
+            currentAnimal = animal;
+            updateCharBtnActiveState(currentAnimal);
+            angerLevel = 0;
+            updateUI();
+        });
+    });
+
+    recipientNameInput.addEventListener('input', (e) => {
+        recipientName = e.target.value || 'Valentine'; // Default to 'Valentine' if empty
+        // No need to call updateUI here, as it's called on modal close or link generation
+    });
+
+    generateLinkBtn.addEventListener('click', () => {
+        const baseUrl = window.location.origin + window.location.pathname;
+        const params = new URLSearchParams();
+        params.set('name', recipientName);
+        params.set('animal', currentAnimal);
+
+        const shareUrl = `${baseUrl}?${params.toString()}`;
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            const originalText = generateLinkBtn.textContent;
+            generateLinkBtn.textContent = 'Link Copied! 📋';
+            setTimeout(() => {
+                generateLinkBtn.textContent = originalText;
+                settingsModal.classList.add('hidden'); // Close modal after copying
+            }, 1500);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            // Fallback for older browsers or if clipboard access is denied
+            prompt('Copy this link manually:', shareUrl);
+        });
+    });
 
 
+    // --- Interaction Logic (The Game) ---
+
+    // Mobile check
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
         window.innerWidth <= 768 ||
         'ontouchstart' in window;
 
-    // Proximity detection for "No" button
+    // Proximity
     document.addEventListener('mousemove', (e) => {
-        if (!isMobile) { // Only on desktop
-            handleProximity(e.clientX, e.clientY);
-        }
-    });
-
-    // Enhanced touch handling for mobile
-    document.addEventListener('touchstart', (e) => {
-        if (e.touches.length > 0) {
-            const touch = e.touches[0];
-            handleProximity(touch.clientX, touch.clientY);
-            // Prevent default to avoid iOS zoom/scroll issues
-            if (e.target === noBtn) {
-                e.preventDefault();
-            }
-        }
+        if (!isMobile) handleProximity(e.clientX, e.clientY);
     });
 
     document.addEventListener('touchmove', (e) => {
         if (e.touches.length > 0) {
-            const touch = e.touches[0];
-            handleProximity(touch.clientX, touch.clientY);
-            // Prevent scrolling when interacting with button area
-            if (e.target === noBtn) {
-                e.preventDefault();
-            }
+            handleProximity(e.touches[0].clientX, e.touches[0].clientY);
+            if (e.target === noBtn) e.preventDefault(); // Prevent scrolling
         }
-    });
+    }, { passive: false });
 
-    // Mobile-optimized distances - less aggressive
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            handleProximity(e.touches[0].clientX, e.touches[0].clientY);
+            if (e.target === noBtn) e.preventDefault(); // Prevent iOS zoom/scroll issues
+        }
+    }, { passive: false });
+
+
     const reactionDistance = isMobile ? 80 : 100; // Closer trigger for easier interaction
     const moveDistance = isMobile ? 80 : 100; // Less aggressive movement, still playful
 
@@ -114,16 +341,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    let angerTimeout;
+    noBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const rect = noBtn.getBoundingClientRect();
+        moveButtonAway(e.clientX, e.clientY, rect.left + rect.width / 2, rect.top + rect.height / 2);
+        increaseAnger();
+    });
 
+    let angerTimeout;
     function increaseAnger() {
-        // Debounce anger increase slightly
         if (angerTimeout) return;
 
         angerTimeout = setTimeout(() => {
             if (angerLevel < maxAnger) {
                 angerLevel++;
-                updateAnimal();
+                updateAnimalImage();
                 growYesButton();
             } else {
                 if (!catImg.classList.contains('shake')) {
@@ -133,33 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             angerTimeout = null;
         }, 200);
-    }
-
-    noBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        // Force move if clicked
-        const rect = noBtn.getBoundingClientRect();
-        moveButtonAway(e.clientX, e.clientY, rect.left + rect.width / 2, rect.top + rect.height / 2);
-
-        // Also increase anger if clicked (user was fast enough!)
-        increaseAnger();
-    });
-
-    // Handle "Yes" button click
-    yesBtn.addEventListener('click', () => {
-        showSuccess();
-    });
-
-    function updateAnimal() {
-        catImg.src = animalImages[currentAnimal][angerLevel];
-        catImg.alt = `Cute ${currentAnimal} looking ${['neutral', 'annoyed', 'angry', 'furious', 'happy'][angerLevel]}`;
-
-        // Reset transforms to handle state changes cleanly
-        catImg.style.transform = 'none';
-
-        if (angerLevel === 3) {
-            document.body.style.backgroundColor = currentAnimal === 'cat' ? '#ffe0e6' : '#e6f2ff'; // Different background for dog
-        }
     }
 
     function moveButtonAway(cursorX, cursorY, btnX, btnY) {
@@ -287,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Normalize and apply gentler movement
                 const length = Math.hypot(deltaX, deltaY);
                 const dirX = deltaX / length;
-                const dirY = deltaY / length;
+                const dirY = dirY / length;
 
                 newX = btnX + dirX * moveDistance - (btnWidth / 2);
                 newY = btnY + dirY * moveDistance - (btnHeight / 2);
@@ -346,59 +551,85 @@ document.addEventListener('DOMContentLoaded', () => {
         yesBtn.style.transform = `scale(${newScale})`;
     }
 
-    function showSuccess() {
-        // Make animal happy
-        catImg.src = animalImages[currentAnimal][4]; // Happy animal
-        catImg.classList.remove('shake');
+    // --- Success Logic ---
 
-        // Visuals for happy cat
+    yesBtn.addEventListener('click', () => {
+        // Happy State
+        catImg.src = animalImages[currentAnimal][4];
+        catImg.classList.remove('shake');
         catImg.style.transform = 'scale(1.1)';
 
-        // Hide card
+        // Hide main card
         mainCard.style.opacity = '0';
-        mainCard.style.transform = 'translateY(20px)';
         setTimeout(() => {
             mainCard.style.display = 'none';
-            // Show success message
             successMessage.classList.remove('hidden');
-            setTimeout(() => {
-                successMessage.classList.add('visible-success');
-            }, 50);
+            setTimeout(() => successMessage.classList.add('visible-success'), 50);
         }, 500);
 
-        // Hide floating no button if visible
         noBtn.style.display = 'none';
-
         startConfetti();
+    });
+
+    sendReplyBtn.addEventListener('click', async () => {
+        const message = replyInput.value;
+        const shareText = `Hey ${recipientName}, I said YES! ❤️\n${message ? `"${message}"` : ''}\n`;
+        const shareUrl = window.location.href;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'She said YES!',
+                    text: shareText,
+                    url: shareUrl
+                });
+                sendReplyBtn.textContent = 'Shared! ❤️';
+            } catch (err) {
+                // Determine if this was a user cancellation or an actual error
+                if (err.name !== 'AbortError') {
+                    console.error('Error sharing:', err);
+                    copyToClipboard(`${shareText} ${shareUrl}`);
+                }
+            }
+        } else {
+            // Desktop fallback
+            copyToClipboard(`${shareText} ${shareUrl}`);
+        }
+    });
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = sendReplyBtn.textContent;
+            sendReplyBtn.textContent = 'Copied! Paste it to your Valentine 📋';
+            setTimeout(() => {
+                sendReplyBtn.textContent = originalText;
+            }, 3000);
+            alert('Message copied to clipboard! You can now paste it in WhatsApp, iMessage, etc.');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            prompt('Copy this message to send to your Valentine:', text);
+        });
     }
 
     function startConfetti() {
-        const duration = 5000; // 5 seconds of hearts
+        const duration = 5000;
         const interval = setInterval(() => {
             const heart = document.createElement('div');
-            heart.classList.add('heart-shape'); // CSS shape class
+            heart.classList.add('heart-shape');
             heart.style.left = Math.random() * 100 + 'vw';
             heart.style.animationDuration = Math.random() * 2 + 3 + 's';
-            // Random sizes
             const size = Math.random() * 20 + 20;
             heart.style.width = `${size}px`;
             heart.style.height = `${size}px`;
-
-            // Random colors (reds/pinks)
             const colors = ['#ff4d6d', '#c9184a', '#ff758f', '#ff8fa3'];
             heart.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-
             heartsContainer.appendChild(heart);
-
-            // Clean up
-            setTimeout(() => {
-                heart.remove();
-            }, 5000);
+            setTimeout(() => heart.remove(), 5000);
         }, 100);
-
-        // Stop creating after some time
-        setTimeout(() => {
-            clearInterval(interval);
-        }, duration * 2);
+        setTimeout(() => clearInterval(interval), duration * 2);
     }
+
+    // Initialize
+    init();
+
 });
