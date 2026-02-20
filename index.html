@@ -43,7 +43,20 @@
                     <button class="char-btn locked" data-animal="owl">🦉 Owl <span class="lock-icon">🔒</span></button>
                 </div>
             </div>
-            <button id="generate-link-btn" class="btn btn-yes">Copy Link</button>
+
+            <div class="share-section" id="share-section"
+                style="display: none; margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.5); border-radius: 12px; border: 1px dashed var(--primary-color);">
+                <p style="font-size: 0.9rem; margin-bottom: 8px; font-weight: bold; color: var(--text-color);">Your
+                    Shareable Link!</p>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="share-url-input" readonly
+                        style="flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); font-size: 0.8rem;">
+                    <button id="copy-share-url-btn" class="btn btn-yes"
+                        style="padding: 8px 16px; min-width: auto; min-height: auto; font-size: 0.9rem;">Copy</button>
+                </div>
+            </div>
+
+            <button id="generate-link-btn" class="btn btn-yes" style="margin-top: 20px;">Generate Link</button>
             <button id="close-settings-btn" class="close-btn">×</button>
         </div>
     </div>

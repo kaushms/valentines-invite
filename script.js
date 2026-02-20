@@ -16,6 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const recipientNameInput = document.getElementById('recipient-name');
     const charBtns = document.querySelectorAll('.char-btn');
 
+    // Share Elements
+    const shareSection = document.getElementById('share-section');
+    const shareUrlInput = document.getElementById('share-url-input');
+    const copyShareUrlBtn = document.getElementById('copy-share-url-btn');
+
     // Reply Elements
     const replyInput = document.getElementById('reply-input');
     const sendReplyBtn = document.getElementById('send-reply-btn');
@@ -61,20 +66,20 @@ document.addEventListener('DOMContentLoaded', () => {
             'assets/orca_3_furious.png',
             'assets/orca_happy.png'
         ],
-        // PLACEHOLDERS (Using Panda for now)
+        // Correct mappings for Penguin and Owl
         penguin: [
-            'assets/panda_0_neutral.png',
-            'assets/panda_1_annoyed.png',
-            'assets/panda_2_angry.png',
-            'assets/panda_3_furious.png',
-            'assets/panda_happy.png'
+            'assets/penguin_0_neutral.png',
+            'assets/penguin_1_annoyed.png',
+            'assets/penguin_2_angry.png',
+            'assets/penguin_3_furious.png',
+            'assets/penguin_happy.png'
         ],
         owl: [
-            'assets/panda_0_neutral.png',
-            'assets/panda_1_annoyed.png',
-            'assets/panda_2_angry.png',
-            'assets/panda_3_furious.png',
-            'assets/panda_happy.png'
+            'assets/owl_0_neutral.png',
+            'assets/owl_1_annoyed.png',
+            'assets/owl_2_angry.png',
+            'assets/owl_3_furious.png',
+            'assets/owl_happy.png'
         ]
     };
 
@@ -280,18 +285,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const shareUrl = `${baseUrl}?${params.toString()}`;
 
-        // Copy to clipboard
+        // Show share section and populate URL
+        shareSection.style.display = 'block';
+        shareUrlInput.value = shareUrl;
+
+        // Let user see it nicely
+        shareUrlInput.select();
+    });
+
+    copyShareUrlBtn.addEventListener('click', () => {
+        const shareUrl = shareUrlInput.value;
+        if (!shareUrl) return;
+
         navigator.clipboard.writeText(shareUrl).then(() => {
-            const originalText = generateLinkBtn.textContent;
-            generateLinkBtn.textContent = 'Link Copied! 📋';
+            const originalText = copyShareUrlBtn.textContent;
+            copyShareUrlBtn.textContent = 'Copied! ✅';
+            copyShareUrlBtn.style.backgroundColor = '#4caf50';
+
             setTimeout(() => {
-                generateLinkBtn.textContent = originalText;
-                settingsModal.classList.add('hidden'); // Close modal after copying
-            }, 1500);
+                copyShareUrlBtn.textContent = originalText;
+                copyShareUrlBtn.style.backgroundColor = ''; // Reset to default
+            }, 2000);
         }).catch(err => {
             console.error('Failed to copy: ', err);
-            // Fallback for older browsers or if clipboard access is denied
-            prompt('Copy this link manually:', shareUrl);
+            shareUrlInput.select(); // Fallback focus for manual copy
         });
     });
 
