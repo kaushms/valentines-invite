@@ -51,17 +51,45 @@
     <!-- Premium Modal -->
     <div id="premium-modal" class="modal hidden" style="z-index: 200;">
         <div class="glass-card settings-card premium-card">
-            <h2 class="premium-title">Unlock Premium! 💎</h2>
-            <p class="premium-text">Get access to 🐼 Panda, 🐳 Orca, and all future characters!</p>
-            <div class="premium-features">
-                <p>✨ Unlimited Proposals</p>
-                <p>✨ Exclusive Animations</p>
-                <p>✨ Support the Developer</p>
+            <div class="premium-header">
+                <div class="premium-badge">🌟 Premium</div>
+                <h2 class="premium-title">Unlock All Characters</h2>
+                <p class="premium-text">Make your proposal unforgettable with our premium collection!</p>
             </div>
-            <button id="unlock-btn" class="btn btn-yes shimmer-btn">Unlock Now ($2.99)</button>
+
+            <div class="premium-preview">
+                <img src="assets/panda_happy.png" alt="Panda" class="preview-img">
+                <img src="assets/orca_happy.png" alt="Orca" class="preview-img">
+                <img src="assets/penguin_happy.png" alt="Penguin" class="preview-img">
+                <img src="assets/owl_happy.png" alt="Owl" class="preview-img">
+            </div>
+
+            <div class="premium-features">
+                <div class="feature-item">
+                    <span class="feature-icon">✓</span>
+                    <span>Unlock 🐼 Panda & 🐳 Orca</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✓</span>
+                    <span>Unlock 🐧 Penguin & 🦉 Owl</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✓</span>
+                    <span>Exclusive Happy Animations</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✓</span>
+                    <span>Lifetime Access to Future Updates</span>
+                </div>
+            </div>
+
+            <button id="unlock-btn" class="btn shimmer-btn premium-cta">
+                <span>Unlock Now — $2.99</span>
+                <span class="cta-subtitle">One-time payment</span>
+            </button>
+
+            <p class="guarantee-text">🔒 Secure payment • Forever yours</p>
             <button id="close-premium-btn" class="close-btn">×</button>
-            <p class="small-text" style="margin-top: 10px; font-size: 0.8rem; opacity: 0.7;">One-time payment. Forever
-                yours.</p>
         </div>
     </div>
 
