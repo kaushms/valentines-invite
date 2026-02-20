@@ -472,56 +472,199 @@ body {
 }
 
 .premium-card {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 240, 245, 0.9));
-    border: 2px solid #ffd700;
-    /* Gold border */
-    box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+    background: #ffffff;
+    border: none;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    max-width: 400px;
+    border-radius: 28px;
+}
+
+.premium-header {
+    background: linear-gradient(135deg, #ff758f 0%, #ff4d6d 100%);
+    color: white;
+    padding: 32px 24px 32px;
+    position: relative;
+    text-align: center;
+}
+
+.premium-badge {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
 }
 
 .premium-title {
-    font-family: 'Pacifico', cursive;
-    color: #ffd700;
-    text-shadow: 1px 1px 0 #d4af37;
-    font-size: 2.2rem;
-    margin-bottom: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    text-shadow: none;
+    color: white;
 }
 
 .premium-text {
-    font-size: 1.1rem;
-    margin-bottom: 20px;
-    color: var(--text-color);
+    font-size: 0.95rem;
+    opacity: 0.95;
+    margin: 0;
+}
+
+.premium-preview {
+    display: flex;
+    justify-content: center;
+    gap: -12px;
+    margin-top: -24px;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+}
+
+.preview-img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    background: white;
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border: 3px solid white;
+    margin-left: -12px;
+    transition: transform 0.3s ease, z-index 0.3s ease;
+    position: relative;
+}
+
+.preview-img:first-child {
+    margin-left: 0;
+}
+
+.preview-img:hover {
+    transform: translateY(-8px) scale(1.15);
+    z-index: 10 !important;
+}
+
+/* manual z-indexing to layer images nicely */
+.preview-img:nth-child(1) {
+    z-index: 1;
+}
+
+.preview-img:nth-child(2) {
+    z-index: 2;
+}
+
+.preview-img:nth-child(3) {
+    z-index: 3;
+}
+
+.preview-img:nth-child(4) {
+    z-index: 4;
 }
 
 .premium-features {
+    padding: 24px 32px 16px;
     text-align: left;
-    margin: 20px auto;
-    width: fit-content;
 }
 
-.premium-features p {
-    margin: 8px 0;
+.feature-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px;
     font-size: 1rem;
+    color: #4a4a4a;
+    font-weight: 500;
 }
 
-/* Shimmer Button Effect */
-.shimmer-btn {
-    background: linear-gradient(45deg, #ff4d6d, #ff8fa3, #ffd700, #ff4d6d);
-    background-size: 300% 300%;
-    animation: shimmer 3s infinite;
+.feature-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: #e8f5e9;
+    color: #4caf50;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-right: 14px;
+    flex-shrink: 0;
+}
+
+.premium-cta {
+    width: calc(100% - 48px);
+    margin: 0 24px 16px;
+    padding: 16px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #ff4d6d 0%, #c9184a 100%);
+    box-shadow: 0 8px 24px rgba(255, 77, 109, 0.4);
     border: none;
     color: white;
 }
 
+.premium-cta:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 28px rgba(255, 77, 109, 0.5);
+}
+
+.premium-cta:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.premium-cta span {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.premium-cta .cta-subtitle {
+    font-size: 0.8rem;
+    font-weight: 500;
+    opacity: 0.85;
+}
+
+.guarantee-text {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 24px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Override close btn for premium */
+.premium-card .close-btn {
+    color: white;
+    background: rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(4px);
+    top: 16px;
+    right: 16px;
+}
+
+.premium-card .close-btn:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Shimmer Button Effect (Updated for inner element if needed, though the gradient looks fine without shimmer. Keeping subtle shimmer) */
+.shimmer-btn {
+    background-size: 200% auto;
+    animation: shimmer 3s linear infinite;
+    background-image: linear-gradient(to right, #ff4d6d 0%, #ff8fa3 50%, #ff4d6d 100%);
+}
+
 @keyframes shimmer {
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
+    to {
+        background-position: 200% center;
     }
 }
